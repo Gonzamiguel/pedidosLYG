@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { AlertCircle, ShoppingBag } from 'lucide-react'
+import { AlertCircle, CalendarDays, ShoppingBag } from 'lucide-react'
 import Header from '../components/Header'
 import ClientForm from '../components/ClientForm'
 import DayTabs from '../components/DayTabs'
@@ -9,6 +9,7 @@ import OrderConfirmModal from '../components/OrderConfirmModal'
 import { emptyOrderDetails, getDayLabel } from '../data/constants'
 import { useCatalog } from '../hooks/useCatalog'
 import { findCompanyBySlug } from '../utils/companyLinks'
+import { weekLabel, weekRangeText } from '../utils/weekHelpers'
 import {
   countTotalMeals,
   setDayNote,
@@ -36,6 +37,11 @@ export default function OrderPage() {
     [catalog.companies, companySlug],
   )
 
+  const activeWeek = useMemo(
+    () => (company ? catalog.getActiveWeek(company.id) : null),
+    [catalog, company],
+  )
+
   useEffect(() => {
     if (!company) return
     setClient((prev) => ({ ...prev, companyId: company.id }))
@@ -50,6 +56,7 @@ export default function OrderPage() {
   const validateClient = () => {
     const next = {}
     if (!company) next.companyId = 'Empresa no encontrada'
+    if (!activeWeek) next.week = 'No hay semana activa'
     if (!client.userName.trim()) next.userName = 'Ingresá tu nombre'
     if (!client.userSector.trim()) next.userSector = 'Ingresá el sector'
     if (!client.userPhone.trim()) next.userPhone = 'Ingresá un teléfono'
@@ -72,6 +79,9 @@ export default function OrderPage() {
   const handleSubmitOrder = async () => {
     await catalog.submitOrder({
       companyId: company.id,
+      weekId: activeWeek.id,
+      weekStart: activeWeek.startDate,
+      weekEnd: activeWeek.endDate,
       userName: client.userName,
       userSector: client.userSector,
       userPhone: client.userPhone,
@@ -122,17 +132,41 @@ export default function OrderPage() {
     )
   }
 
+  if (!activeWeek) {
+    return (
+      <div className="pb-8">
+        <Header company={company} />
+        <div className="mx-auto max-w-lg px-4 py-12">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+            <CalendarDays className="mx-auto h-10 w-10 text-amber-700" />
+            <h1 className="mt-3 font-display text-xl font-bold text-slate-900">
+              Pedidos no habilitados
+            </h1>
+            <p className="mt-2 text-sm text-slate-600">
+              {company.code} todavía no tiene una semana activa. El
+              administrador debe abrir el período (desde / hasta) en el panel.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="pb-24 sm:pb-28">
       <Header company={company} />
 
       <main className="mx-auto max-w-5xl px-3 py-4 sm:px-4 sm:py-7">
         <div className="space-y-4 sm:space-y-5">
-          <section className="animate-fade-up">
-            <p className="text-sm font-medium text-slate-600 sm:text-base">
-              Pedí almuerzo y cena de lunes a domingo para{' '}
-              <span className="font-semibold text-slate-900">{company.code}</span>.
+          <section className="animate-fade-up rounded-2xl border border-amber-200 bg-amber-50/80 px-3.5 py-3.5 sm:px-4">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-amber-800">
+              <CalendarDays className="h-4 w-4" />
+              Semana del pedido
             </p>
+            <p className="mt-1 font-display text-lg font-semibold text-slate-900">
+              {weekLabel(activeWeek)}
+            </p>
+            <p className="text-sm text-slate-600">{weekRangeText(activeWeek)}</p>
           </section>
 
           <ClientForm
@@ -185,7 +219,9 @@ export default function OrderPage() {
                 )
               }
               onNoteChange={(note) =>
-                setDetails((prev) => setDayNote(prev, activeDay, 'dinner', note))
+                setDetails((prev) =>
+                  setDayNote(prev, activeDay, 'dinner', note),
+                )
               }
             />
           </div>
@@ -224,6 +260,7 @@ export default function OrderPage() {
         onClose={() => setConfirmOpen(false)}
         client={client}
         company={company}
+        week={activeWeek}
         details={details}
         dishesById={catalog.dishesById}
         onSubmit={handleSubmitOrder}

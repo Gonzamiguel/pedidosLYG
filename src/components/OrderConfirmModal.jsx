@@ -7,12 +7,14 @@ import {
   countDayMeals,
   countTotalMeals,
 } from '../utils/orderHelpers'
+import { weekRangeText } from '../utils/weekHelpers'
 
 export default function OrderConfirmModal({
   open,
   onClose,
   client,
   company,
+  week,
   details,
   dishesById,
   onSubmit,
@@ -26,6 +28,7 @@ export default function OrderConfirmModal({
 
   const message = buildWhatsAppMessage({
     company,
+    week,
     userName: client.userName,
     userSector: client.userSector,
     userPhone: client.userPhone,
@@ -80,6 +83,11 @@ export default function OrderConfirmModal({
             <p className="mt-0.5 text-sm text-slate-500">
               {total} viandas · {company?.code} · {client.userName}
             </p>
+            {week && (
+              <p className="mt-0.5 text-xs font-medium text-amber-700">
+                {weekRangeText(week)}
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -104,6 +112,11 @@ export default function OrderConfirmModal({
           ) : (
             <div className="space-y-4">
               <div className="rounded-xl bg-stone-50 px-3 py-2.5 text-sm text-slate-600">
+                {week && (
+                  <p>
+                    <strong>Semana:</strong> {weekRangeText(week)}
+                  </p>
+                )}
                 <p>
                   <strong>Sector:</strong> {client.userSector}
                 </p>

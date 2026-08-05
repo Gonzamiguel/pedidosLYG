@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import {
   ArrowLeft,
   Building2,
+  CalendarDays,
   CalendarRange,
   ClipboardList,
+  History,
   Loader2,
   Lock,
   LogOut,
@@ -19,9 +21,23 @@ import { getDataMode } from '../firebase/services'
 import DishesTab from './admin/DishesTab'
 import MenuConfigTab from './admin/MenuConfigTab'
 import CompaniesTab from './admin/CompaniesTab'
+import WeeksTab from './admin/WeeksTab'
 import ConsolidatedTab from './admin/ConsolidatedTab'
+import HistoryTab from './admin/HistoryTab'
 
 const MODULES = [
+  {
+    id: 'companies',
+    label: 'Empresas',
+    description: 'Links y altas',
+    icon: Building2,
+  },
+  {
+    id: 'weeks',
+    label: 'Semanas',
+    description: 'Período del pedido',
+    icon: CalendarDays,
+  },
   {
     id: 'dishes',
     label: 'Platos',
@@ -35,16 +51,16 @@ const MODULES = [
     icon: CalendarRange,
   },
   {
-    id: 'companies',
-    label: 'Empresas',
-    description: 'Códigos y nombres',
-    icon: Building2,
-  },
-  {
     id: 'report',
     label: 'Consolidado cocina',
-    description: 'Pedidos y exportación',
+    description: 'Pedidos de la semana',
     icon: ClipboardList,
+  },
+  {
+    id: 'history',
+    label: 'Historial',
+    description: 'Semanas y pedidos',
+    icon: History,
   },
 ]
 
@@ -52,7 +68,7 @@ const inputClass =
   'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
 
 export default function AdminDashboard({ onBack, catalog }) {
-  const [module, setModule] = useState('dishes')
+  const [module, setModule] = useState('weeks')
   const [admin, setAdmin] = useState(null)
   const [demoAuthed, setDemoAuthed] = useState(false)
   const [checking, setChecking] = useState(isFirebaseConfigured)
@@ -323,6 +339,22 @@ export default function AdminDashboard({ onBack, catalog }) {
 
         <main className="flex-1 overflow-y-auto px-8 py-6">
           <div className="mx-auto max-w-6xl">
+            {module === 'companies' && (
+              <CompaniesTab
+                companies={catalog.companies}
+                onCreate={catalog.addCompany}
+                onDelete={catalog.removeCompany}
+              />
+            )}
+            {module === 'weeks' && (
+              <WeeksTab
+                companies={catalog.companies}
+                weeks={catalog.weeks}
+                onCreate={catalog.addWeek}
+                onSetStatus={catalog.changeWeekStatus}
+                onDelete={catalog.removeWeek}
+              />
+            )}
             {module === 'dishes' && (
               <DishesTab
                 dishes={catalog.dishes}
@@ -338,19 +370,23 @@ export default function AdminDashboard({ onBack, catalog }) {
                 onSave={catalog.updateMenu}
               />
             )}
-            {module === 'companies' && (
-              <CompaniesTab
-                companies={catalog.companies}
-                onCreate={catalog.addCompany}
-                onDelete={catalog.removeCompany}
-              />
-            )}
             {module === 'report' && (
               <ConsolidatedTab
                 orders={catalog.orders}
+                weeks={catalog.weeks}
                 companies={catalog.companies}
                 dishesById={catalog.dishesById}
                 companiesById={catalog.companiesById}
+              />
+            )}
+            {module === 'history' && (
+              <HistoryTab
+                orders={catalog.orders}
+                weeks={catalog.weeks}
+                companies={catalog.companies}
+                companiesById={catalog.companiesById}
+                weeksById={catalog.weeksById}
+                dishesById={catalog.dishesById}
               />
             )}
           </div>

@@ -55,10 +55,19 @@ El empleado no elige empresa: ya viene fijada en el link.
 
 | Módulo | Uso |
 |--------|-----|
+| Empresas | Altas + link de formulario |
+| Semanas | Período del pedido (desde / hasta), una activa por empresa |
 | Platos | Catálogo central |
 | Configurar menú | Hasta 4 platos por turno / empresa / día |
-| Empresas | Altas de empresas |
-| Consolidado cocina | Métricas + CSV |
+| Consolidado cocina | Métricas de la semana + CSV |
+| Historial | Todas las semanas y pedidos |
+
+## Semanas
+
+1. Admin → **Semanas** → elegí empresa → fecha desde / hasta (por defecto Lun–Dom)
+2. Al crear, esa semana queda **activa** y el formulario `/pedido/{empresa}` la muestra
+3. Cada pedido guarda `weekId`, `weekStart` y `weekEnd`
+4. En **Historial** ves pedidos anteriores por empresa y semana
 
 ## Scripts
 

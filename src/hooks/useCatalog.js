@@ -2,13 +2,17 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   createCompany,
   createDish,
+  createWeek,
   deleteCompany,
   deleteDish,
+  deleteWeek,
   getCompanies,
   getDishes,
   getOrders,
+  getWeeks,
   getWeeklyMenus,
   saveWeeklyMenu,
+  setWeekStatus,
   createOrder,
 } from '../firebase/services'
 
@@ -16,6 +20,7 @@ export function useCatalog() {
   const [companies, setCompanies] = useState([])
   const [dishes, setDishes] = useState([])
   const [menus, setMenus] = useState([])
+  const [weeks, setWeeks] = useState([])
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -24,14 +29,16 @@ export function useCatalog() {
     setLoading(true)
     setError('')
     try {
-      const [c, d, m] = await Promise.all([
+      const [c, d, m, w] = await Promise.all([
         getCompanies(),
         getDishes(),
         getWeeklyMenus(),
+        getWeeks(),
       ])
       setCompanies(c)
       setDishes(d)
       setMenus(m)
+      setWeeks(w)
 
       try {
         const o = await getOrders()
@@ -61,6 +68,11 @@ export function useCatalog() {
     [companies],
   )
 
+  const weeksById = useMemo(
+    () => Object.fromEntries(weeks.map((w) => [w.id, w])),
+    [weeks],
+  )
+
   const getMenuFor = useCallback(
     (companyId, dayId) =>
       menus.find((m) => m.companyId === companyId && m.dayId === dayId) || {
@@ -72,14 +84,24 @@ export function useCatalog() {
     [menus],
   )
 
+  const getActiveWeek = useCallback(
+    (companyId) =>
+      weeks.find((w) => w.companyId === companyId && w.status === 'active') ||
+      null,
+    [weeks],
+  )
+
   return {
     companies,
     dishes,
     menus,
+    weeks,
     orders,
     dishesById,
     companiesById,
+    weeksById,
     getMenuFor,
+    getActiveWeek,
     loading,
     error,
     async addCompany(data) {
@@ -104,6 +126,19 @@ export function useCatalog() {
       const saved = await saveWeeklyMenu(data)
       await refresh()
       return saved
+    },
+    async addWeek(data) {
+      const created = await createWeek(data)
+      await refresh()
+      return created
+    },
+    async changeWeekStatus(weekId, status) {
+      await setWeekStatus(weekId, status)
+      await refresh()
+    },
+    async removeWeek(weekId) {
+      await deleteWeek(weekId)
+      await refresh()
     },
     async submitOrder(data) {
       const created = await createOrder(data)

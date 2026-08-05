@@ -44,6 +44,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Semanas / períodos del pedido (desde-hasta)
+    match /weeks/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Empleados crean pedidos sin login; solo admin lee/consolida
     match /orders/{id} {
       allow create: if true;

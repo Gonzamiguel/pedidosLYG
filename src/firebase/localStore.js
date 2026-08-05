@@ -1,10 +1,11 @@
-const STORAGE_KEY = 'pedidos_lg_local_v2'
+const STORAGE_KEY = 'pedidos_lg_local_v3'
 
 function defaultState() {
   return {
     companies: [],
     dishes: [],
     weekly_menus: [],
+    weeks: [],
     orders: [],
   }
 }

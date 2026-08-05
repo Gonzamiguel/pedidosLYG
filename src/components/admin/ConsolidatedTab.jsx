@@ -1,29 +1,49 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Download, UtensilsCrossed } from 'lucide-react'
 import { DAYS, MEAL_SLOTS } from '../../data/constants'
 import {
   consolidateOrders,
   exportKitchenCsv,
 } from '../../utils/orderHelpers'
+import { weekLabel } from '../../utils/weekHelpers'
 
 const field =
   'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
 
 export default function ConsolidatedTab({
   orders,
+  weeks,
   companies,
   dishesById,
   companiesById,
 }) {
-  const [filter, setFilter] = useState('all')
+  const [companyFilter, setCompanyFilter] = useState('all')
+  const [weekFilter, setWeekFilter] = useState('all')
+
+  const weekOptions = useMemo(() => {
+    if (companyFilter === 'all') return weeks
+    return weeks.filter((w) => w.companyId === companyFilter)
+  }, [weeks, companyFilter])
+
+  useEffect(() => {
+    const active = weekOptions.find((w) => w.status === 'active')
+    if (weekFilter !== 'all' && weekOptions.some((w) => w.id === weekFilter)) {
+      return
+    }
+    setWeekFilter(active?.id || 'all')
+  }, [companyFilter, weekOptions]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const consolidated = useMemo(
-    () => consolidateOrders(orders, filter),
-    [orders, filter],
+    () => consolidateOrders(orders, companyFilter, weekFilter),
+    [orders, companyFilter, weekFilter],
   )
 
   const companyLabel =
-    filter === 'all' ? 'Todas' : companiesById[filter]?.code || filter
+    companyFilter === 'all'
+      ? 'Todas'
+      : companiesById[companyFilter]?.code || companyFilter
+
+  const weekMeta = weeks.find((w) => w.id === weekFilter)
 
   const metrics = [
     { label: 'Pedidos', value: consolidated.metrics.totalOrders },
@@ -35,15 +55,16 @@ export default function ConsolidatedTab({
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <label className="block w-full max-w-md">
-            <span className="text-sm font-medium text-slate-700">
-              Filtrar por empresa
-            </span>
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+          <label className="block">
+            <span className="text-sm font-medium text-slate-700">Empresa</span>
             <select
               className={field}
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              value={companyFilter}
+              onChange={(e) => {
+                setCompanyFilter(e.target.value)
+                setWeekFilter('all')
+              }}
             >
               <option value="all">Todas las empresas</option>
               {companies.map((c) => (
@@ -53,10 +74,32 @@ export default function ConsolidatedTab({
               ))}
             </select>
           </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-slate-700">Semana</span>
+            <select
+              className={field}
+              value={weekFilter}
+              onChange={(e) => setWeekFilter(e.target.value)}
+            >
+              <option value="all">Todas las semanas</option>
+              {weekOptions.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {weekLabel(w)}
+                  {w.status === 'active' ? ' (activa)' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <button
             type="button"
             onClick={() =>
-              exportKitchenCsv(consolidated, dishesById, companyLabel)
+              exportKitchenCsv(
+                consolidated,
+                dishesById,
+                `${companyLabel}${weekMeta ? `_${weekLabel(weekMeta)}` : ''}`,
+              )
             }
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-500"
           >
@@ -125,7 +168,7 @@ export default function ConsolidatedTab({
 
           {!consolidated.metrics.grandTotal && (
             <p className="rounded-xl border border-dashed border-stone-300 px-4 py-10 text-center text-sm text-slate-500">
-              Todavía no hay pedidos para consolidar.
+              No hay pedidos para este filtro.
             </p>
           )}
         </div>

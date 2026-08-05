@@ -1,4 +1,5 @@
 import { DAYS, DAY_IDS, MEAL_SLOTS, ORDER_DEADLINE } from '../data/constants'
+import { weekRangeText } from './weekHelpers'
 
 export function countSlotMeals(slotMap = {}) {
   return Object.values(slotMap).reduce((sum, n) => sum + (Number(n) || 0), 0)
@@ -53,6 +54,7 @@ export function isPastDeadline(date = new Date()) {
 
 export function buildWhatsAppMessage({
   company,
+  week,
   userName,
   userSector,
   userPhone,
@@ -62,11 +64,16 @@ export function buildWhatsAppMessage({
   const lines = [
     `*Pedido L&G*`,
     `Empresa: ${company?.code || ''} — ${company?.name || ''}`,
+  ]
+  if (week) {
+    lines.push(`Semana: ${weekRangeText(week)}`)
+  }
+  lines.push(
     `Solicitante: ${userName}`,
     `Sector: ${userSector}`,
     `Tel: ${userPhone}`,
     ``,
-  ]
+  )
 
   for (const day of DAYS) {
     const dayDetails = details[day.id]
@@ -110,7 +117,11 @@ export function buildWhatsAppUrl(message, phone = '') {
  * Consolida pedidos en un mapa:
  * { lun: { lunch: { dishId: count }, dinner: { ... } }, ... }
  */
-export function consolidateOrders(orders, companyFilter = 'all') {
+export function consolidateOrders(
+  orders,
+  companyFilter = 'all',
+  weekFilter = 'all',
+) {
   const result = Object.fromEntries(
     DAY_IDS.map((id) => [id, { lunch: {}, dinner: {} }]),
   )
@@ -121,6 +132,7 @@ export function consolidateOrders(orders, companyFilter = 'all') {
 
   for (const order of orders) {
     if (companyFilter !== 'all' && order.companyId !== companyFilter) continue
+    if (weekFilter !== 'all' && order.weekId !== weekFilter) continue
     totalOrders += 1
 
     for (const dayId of DAY_IDS) {
