@@ -26,16 +26,22 @@ export function useCatalog() {
     setError('')
     try {
       await ensureLocalSeed()
-      const [c, d, m, o] = await Promise.all([
+      const [c, d, m] = await Promise.all([
         getCompanies(),
         getDishes(),
         getWeeklyMenus(),
-        getOrders(),
       ])
       setCompanies(c)
       setDishes(d)
       setMenus(m)
-      setOrders(o)
+
+      // Los pedidos solo los lee el admin (reglas Firestore)
+      try {
+        const o = await getOrders()
+        setOrders(o)
+      } catch {
+        setOrders([])
+      }
     } catch (err) {
       console.error(err)
       setError(err.message || 'Error al cargar datos')
@@ -69,7 +75,16 @@ export function useCatalog() {
     [menus],
   )
 
-  const actions = {
+  return {
+    companies,
+    dishes,
+    menus,
+    orders,
+    dishesById,
+    companiesById,
+    getMenuFor,
+    loading,
+    error,
     async addCompany(data) {
       const created = await createCompany(data)
       await refresh()
@@ -91,7 +106,12 @@ export function useCatalog() {
     },
     async submitOrder(data) {
       const created = await createOrder(data)
-      await refresh()
+      // No fallar si no se pueden releer pedidos (empleado sin auth)
+      try {
+        await refresh()
+      } catch {
+        /* ignore */
+      }
       return created
     },
     async seed() {
@@ -99,18 +119,5 @@ export function useCatalog() {
       await refresh()
     },
     refresh,
-  }
-
-  return {
-    companies,
-    dishes,
-    menus,
-    orders,
-    dishesById,
-    companiesById,
-    getMenuFor,
-    loading,
-    error,
-    ...actions,
   }
 }

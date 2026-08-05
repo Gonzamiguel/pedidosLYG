@@ -3,8 +3,8 @@ import { Minus, Plus } from 'lucide-react'
 export default function QuantitySelector({ value, onChange, tone = 'lunch' }) {
   const btnTone =
     tone === 'dinner'
-      ? 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200 active:bg-indigo-300'
-      : 'bg-amber-100 text-amber-800 hover:bg-amber-200 active:bg-amber-300'
+      ? 'bg-indigo-100 text-indigo-800 active:bg-indigo-300'
+      : 'bg-amber-100 text-amber-800 active:bg-amber-300'
 
   const inputTone =
     tone === 'dinner'
@@ -21,17 +21,18 @@ export default function QuantitySelector({ value, onChange, tone = 'lunch' }) {
         type="button"
         aria-label="Restar"
         onClick={() => bump(-1)}
-        className={`inline-flex h-11 w-11 items-center justify-center rounded-xl transition ${btnTone}`}
+        className={`inline-flex h-12 w-12 items-center justify-center rounded-xl transition active:scale-95 ${btnTone}`}
       >
-        <Minus className="h-4 w-4" strokeWidth={2.5} />
+        <Minus className="h-5 w-5" strokeWidth={2.5} />
       </button>
 
       <input
         type="number"
         inputMode="numeric"
+        pattern="[0-9]*"
         min={0}
         max={999}
-        className={`hide-arrows h-11 w-16 rounded-xl border bg-white text-center text-base font-bold text-slate-800 outline-none ring-0 focus:ring-2 ${inputTone}`}
+        className={`hide-arrows h-12 w-[4.25rem] rounded-xl border bg-white text-center text-lg font-bold text-slate-800 outline-none focus:ring-2 ${inputTone}`}
         value={value === 0 ? '' : value}
         placeholder="0"
         onChange={(e) => {
@@ -51,9 +52,9 @@ export default function QuantitySelector({ value, onChange, tone = 'lunch' }) {
         type="button"
         aria-label="Sumar"
         onClick={() => bump(1)}
-        className={`inline-flex h-11 w-11 items-center justify-center rounded-xl transition ${btnTone}`}
+        className={`inline-flex h-12 w-12 items-center justify-center rounded-xl transition active:scale-95 ${btnTone}`}
       >
-        <Plus className="h-4 w-4" strokeWidth={2.5} />
+        <Plus className="h-5 w-5" strokeWidth={2.5} />
       </button>
     </div>
   )

@@ -53,7 +53,20 @@
   }
 
   .safe-pb {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-pt {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+}
+
+/* Inputs ≥16px evitan zoom automático en iOS */
+@layer base {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
 

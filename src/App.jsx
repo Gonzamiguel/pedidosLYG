@@ -1,16 +1,15 @@
 import { useMemo, useState } from 'react'
-import { Clock, ShoppingBag } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import Header from './components/Header'
 import ClientForm from './components/ClientForm'
 import DayTabs from './components/DayTabs'
 import MenuCard from './components/MenuCard'
 import OrderConfirmModal from './components/OrderConfirmModal'
 import MasterPanel from './components/MasterPanel'
-import { ORDER_DEADLINE, emptyOrderDetails, getDayLabel } from './data/constants'
+import { emptyOrderDetails, getDayLabel } from './data/constants'
 import { useCatalog } from './hooks/useCatalog'
 import {
   countTotalMeals,
-  isPastDeadline,
   setDayNote,
   setDishCount,
 } from './utils/orderHelpers'
@@ -34,7 +33,6 @@ export default function App() {
   const total = useMemo(() => countTotalMeals(details), [details])
   const company = catalog.companiesById[client.companyId]
   const menu = catalog.getMenuFor(client.companyId, activeDay)
-  const pastDeadline = isPastDeadline()
 
   const validateClient = () => {
     const next = {}
@@ -52,7 +50,6 @@ export default function App() {
       return
     }
     if (total === 0) {
-      setErrors({ companyId: errors.companyId })
       alert('Agregá al menos una vianda antes de enviar.')
       return
     }
@@ -70,43 +67,28 @@ export default function App() {
     })
   }
 
-  const resetAfterClose = () => {
-    setConfirmOpen(false)
-  }
-
   return (
-    <div className="pb-28">
+    <div className="pb-24 sm:pb-28">
       <Header onOpenAdmin={() => setAdminOpen(true)} />
 
-      <main className="mx-auto max-w-5xl px-4 py-5 sm:py-7">
+      <main className="mx-auto max-w-5xl px-3 py-4 sm:px-4 sm:py-7">
         {catalog.loading ? (
           <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-16 text-center text-slate-500">
-            Cargando catálogo…
+            Cargando menú…
           </div>
         ) : catalog.error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-8 text-center text-rose-700">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-8 text-center text-sm text-rose-700">
             {catalog.error}
+            <p className="mt-2 text-xs text-rose-500">
+              Si es la primera vez, ingresá como Admin y tocá Seed.
+            </p>
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-5">
             <section className="animate-fade-up">
-              <p className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                ViandApp
+              <p className="text-sm font-medium text-slate-600 sm:text-base">
+                Pedí almuerzo y cena de lunes a domingo. Rápido desde el celular.
               </p>
-              <p className="mt-1 max-w-xl text-slate-600">
-                Pedí almuerzo y cena de lunes a domingo para tu empresa. Simple,
-                rápido y pensado para el celular.
-              </p>
-              <div
-                className={`mt-3 inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold ${
-                  pastDeadline
-                    ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200'
-                    : 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'
-                }`}
-              >
-                <Clock className="h-4 w-4" />
-                Horario límite de envío: {ORDER_DEADLINE.label}
-              </div>
             </section>
 
             <ClientForm
@@ -117,8 +99,8 @@ export default function App() {
             />
 
             {!client.companyId ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-4 py-10 text-center text-slate-500">
-                Seleccioná tu empresa para ver el menú semanal.
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-4 py-8 text-center text-sm text-slate-500">
+                Seleccioná tu empresa para ver el menú.
               </div>
             ) : (
               <>
@@ -129,15 +111,15 @@ export default function App() {
                 />
 
                 <div className="pt-1">
-                  <h2 className="font-display text-xl font-semibold text-slate-900">
-                    Menú · {getDayLabel(activeDay)}
+                  <h2 className="font-display text-lg font-semibold text-slate-900 sm:text-xl">
+                    {getDayLabel(activeDay)}
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Elegí cantidades con + / − o tipeá el número directamente.
+                  <p className="text-xs text-slate-500 sm:text-sm">
+                    Usá + / − o tipeá la cantidad.
                   </p>
                 </div>
 
-                <div className="grid gap-4 lg:grid-cols-2">
+                <div className="grid gap-3.5 lg:grid-cols-2 lg:gap-4">
                   <MenuCard
                     slot="lunch"
                     dishIds={menu.lunch}
@@ -179,18 +161,17 @@ export default function App() {
         )}
       </main>
 
-      {/* Sticky footer resumen */}
       <footer className="safe-pb fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/80 bg-white/95 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+        <div className="mx-auto flex max-w-5xl items-center gap-2.5 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
               <ShoppingBag className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-slate-500">Total semanal</p>
-              <p className="truncate font-display text-lg font-bold text-slate-900">
+              <p className="text-[11px] text-slate-500">Total semana</p>
+              <p className="truncate font-display text-base font-bold text-slate-900 sm:text-lg">
                 {total}{' '}
-                <span className="text-base font-semibold text-slate-600">
+                <span className="text-sm font-semibold text-slate-600">
                   viandas
                 </span>
               </p>
@@ -200,16 +181,17 @@ export default function App() {
             type="button"
             onClick={openConfirm}
             disabled={!client.companyId}
-            className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 sm:px-6"
+            className="inline-flex h-12 min-w-0 shrink-0 items-center justify-center rounded-xl bg-slate-900 px-3.5 text-sm font-semibold text-white transition active:scale-[0.98] hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 sm:px-6"
           >
-            Revisar y Enviar Pedido
+            <span className="sm:hidden">Revisar pedido</span>
+            <span className="hidden sm:inline">Revisar y Enviar Pedido</span>
           </button>
         </div>
       </footer>
 
       <OrderConfirmModal
         open={confirmOpen}
-        onClose={resetAfterClose}
+        onClose={() => setConfirmOpen(false)}
         client={client}
         company={company}
         details={details}

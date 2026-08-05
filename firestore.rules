@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function adminByUid() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function adminByEmail() {
+      return request.auth.token.email != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.token.email))
+        && get(/databases/$(database)/documents/users/$(request.auth.token.email)).data.role == 'admin';
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (adminByUid() || adminByEmail());
+    }
+
+    // Perfil de usuario — creá users/{UID} con { email, role: "admin" }
+    match /users/{userId} {
+      allow read: if isSignedIn()
+        && (request.auth.uid == userId
+          || request.auth.token.email == userId
+          || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /companies/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /dishes/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /weekly_menus/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Empleados crean pedidos sin login; solo admin lee/consolida
+    match /orders/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

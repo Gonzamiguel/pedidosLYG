@@ -1,6 +1,6 @@
 # ViandApp — Pedidos de Viandas Empresariales
 
-Plataforma multi-empresa para gestionar y realizar pedidos semanales de viandas (Almuerzo y Cena), de lunes a domingo.
+Plataforma multi-empresa para pedidos semanales de viandas (Almuerzo y Cena), pensada **mobile-first** para empleados que cargan desde el celular.
 
 ## Stack
 
@@ -9,58 +9,46 @@ Plataforma multi-empresa para gestionar y realizar pedidos semanales de viandas 
 - **Backend:** Firebase Firestore + Firebase Authentication
 - **Deploy:** Vercel
 
-## Inicio rápido (modo demo local)
-
-Sin configurar Firebase, la app funciona con **localStorage** y datos semilla (empresas LYG/GYL, 10 platos y menús semanales).
+## Inicio rápido
 
 ```bash
 npm install
 npm run dev
 ```
 
-- Formulario de pedidos: vista principal
-- Panel Master: botón **Master** → clave demo `viandapp-master`
+Las credenciales van en `.env` (ya configurado localmente). `.env` está en `.gitignore`.
 
-## Configurar Firebase
+## Admin con rol en Firestore
 
-1. Creá un proyecto en [Firebase Console](https://console.firebase.google.com/)
-2. Activá **Authentication** (Email/Password) y **Firestore Database**
-3. Copiá `.env.example` a `.env` y completá las variables:
+1. En **Firebase Authentication** → creá un usuario Email/Password.
+2. Copiá el **UID** del usuario.
+3. En **Firestore** → colección `users` → documento con ID = **UID**:
 
-```env
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_STORAGE_BUCKET=
-VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID=
-VITE_ADMIN_EMAIL=admin@tuempresa.com
-VITE_ADMIN_DEMO_KEY=viandapp-master
-```
-
-4. Creá el usuario admin en Firebase Auth con el mismo email de `VITE_ADMIN_EMAIL`
-5. En el Panel Master, usá el botón **Seed** para cargar empresas, platos y menús
-
-### Reglas Firestore sugeridas (desarrollo)
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-  }
+```json
+{
+  "email": "admin@tuempresa.com",
+  "role": "admin",
+  "name": "Administrador"
 }
 ```
 
-Ajustá las reglas para producción según tu política de seguridad.
+También se acepta documento con ID = email (mismo contenido).
+
+4. En la app, tocá el ícono **Admin** (escudo) e iniciá sesión con ese email/contraseña.
+5. Tocá **Seed** para cargar empresas LYG/GYL, 10 platos y menús semanales.
+
+### Reglas Firestore
+
+Publicá el archivo `firestore.rules` del repo (o desde Firebase Console):
+
+- Empleados: leen menús/platos/empresas y **crean** pedidos (sin login)
+- Admin (`role: admin`): escribe catálogo/menús y lee consolidado de pedidos
 
 ## Modelo de datos
 
 | Colección | Descripción |
 |-----------|-------------|
+| `users` | Perfiles; admin = `{ role: "admin", email }` |
 | `companies` | Empresas (código + nombre) |
 | `dishes` | Catálogo central de platos |
 | `weekly_menus` | Menú por empresa y día (`{companyId}_{dayId}`) |
@@ -68,28 +56,20 @@ Ajustá las reglas para producción según tu política de seguridad.
 
 ## Funcionalidades
 
-### Empleado
-- Datos del solicitante (empresa, nombre, sector, teléfono)
-- Tabs Lunes–Domingo con badges de cantidad
-- Almuerzo (ámbar) y Cena (índigo) con selector − / + / input numérico
-- Observaciones por turno
-- Badge de límite 10:30 AM
-- Sticky footer con total + confirmar
-- Envío a Firestore / WhatsApp
+### Empleado (mobile-first)
+- Formulario táctil: empresa, nombre, sector, WhatsApp
+- Tabs Lun–Dom con badges
+- Almuerzo (ámbar) / Cena (índigo) con − / + / input numérico
+- Footer sticky con total + revisar/enviar
+- WhatsApp prearmado
 
-### Master Admin
-- Gestión de platos
-- Configurador de menús (hasta 4 platos por turno)
-- Gestión de empresas
-- Consolidado de cocina + métricas + export CSV
+### Admin
+- Login Firebase Auth + verificación `role: admin`
+- Platos, Config. Menú, Empresas, Consolidado + CSV
 
 ## Deploy en Vercel
 
-```bash
-npm run build
-```
-
-Conectá el repo a Vercel y cargá las variables `VITE_*` en el proyecto.
+Cargá las variables `VITE_FIREBASE_*` en el proyecto de Vercel y desplegá.
 
 ## Scripts
 
@@ -98,22 +78,3 @@ Conectá el repo a Vercel y cargá las variables `VITE_*` en el proyecto.
 | `npm run dev` | Desarrollo local |
 | `npm run build` | Build de producción |
 | `npm run preview` | Preview del build |
-| `npm run lint` | Lint con oxlint |
-
-## Estructura
-
-```
-src/
-  components/
-    Header.jsx
-    ClientForm.jsx
-    DayTabs.jsx
-    MenuCard.jsx
-    MasterPanel.jsx
-    OrderConfirmModal.jsx
-    admin/
-  data/          # constants + seed
-  firebase/      # config + services + localStore
-  hooks/
-  utils/
-```

@@ -28,6 +28,7 @@ if (isFirebaseConfigured) {
 }
 
 export { app, auth, db }
-export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || ''
+
+/** Fallback solo si Firebase no está configurado */
 export const ADMIN_DEMO_KEY =
   import.meta.env.VITE_ADMIN_DEMO_KEY || 'viandapp-master'
