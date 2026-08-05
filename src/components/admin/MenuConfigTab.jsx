@@ -69,7 +69,7 @@ export default function MenuConfigTab({
     >
       <div className="mb-3 flex items-center justify-between">
         <h4
-          className={`font-display text-base font-semibold ${
+          className={`text-base font-semibold ${
             tone === 'lunch' ? 'text-amber-800' : 'text-indigo-800'
           }`}
         >

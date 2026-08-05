@@ -33,7 +33,7 @@ export default function MenuCard({
     <section className={`animate-fade-up rounded-2xl border p-3.5 sm:p-5 ${shell}`}>
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <h3 className={`flex items-center gap-2 font-display text-base font-semibold sm:text-lg ${title}`}>
+          <h3 className={`flex items-center gap-2 text-base font-semibold sm:text-lg ${title}`}>
             <Icon className="h-5 w-5" />
             {meta.label}
           </h3>

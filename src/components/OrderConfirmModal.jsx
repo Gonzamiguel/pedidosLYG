@@ -77,7 +77,7 @@ export default function OrderConfirmModal({
       <div className="relative z-10 flex max-h-[92dvh] w-full max-w-lg flex-col rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
         <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
           <div>
-            <h2 className="font-display text-xl font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-slate-900">
               Revisar pedido
             </h2>
             <p className="mt-0.5 text-sm text-slate-500">
@@ -102,7 +102,7 @@ export default function OrderConfirmModal({
           {done ? (
             <div className="flex flex-col items-center gap-2 py-8 text-center">
               <CheckCircle2 className="h-12 w-12 text-emerald-500" />
-              <p className="font-display text-lg font-semibold text-slate-900">
+              <p className="text-lg font-semibold text-slate-900">
                 Pedido registrado
               </p>
               <p className="text-sm text-slate-500">

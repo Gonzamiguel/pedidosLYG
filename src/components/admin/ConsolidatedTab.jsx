@@ -118,7 +118,7 @@ export default function ConsolidatedTab({
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
               {m.label}
             </p>
-            <p className="mt-1 font-display text-3xl font-bold text-amber-700">
+            <p className="mt-1 text-3xl font-bold text-amber-700">
               {m.value}
             </p>
           </div>
@@ -126,7 +126,7 @@ export default function ConsolidatedTab({
       </div>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-slate-900">
+        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-900">
           <UtensilsCrossed className="h-5 w-5 text-amber-600" />
           Resumen de cocina por día
         </h3>

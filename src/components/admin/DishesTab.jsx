@@ -38,7 +38,7 @@ export default function DishesTab({ dishes, onCreate, onDelete }) {
         onSubmit={submit}
         className="h-fit rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
       >
-        <h3 className="font-display text-lg font-semibold text-slate-900">
+        <h3 className="text-lg font-semibold text-slate-900">
           Nuevo plato
         </h3>
         <p className="mt-1 text-sm text-slate-500">
@@ -101,7 +101,7 @@ export default function DishesTab({ dishes, onCreate, onDelete }) {
 
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 className="font-display text-lg font-semibold text-slate-900">
+          <h3 className="text-lg font-semibold text-slate-900">
             Catálogo
           </h3>
           <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-slate-600">

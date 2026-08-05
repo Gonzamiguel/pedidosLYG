@@ -1,4 +1,4 @@
-# Pedidos L&G
+# Pedidos Logística y Gastronomía
 
 Plataforma multi-empresa para pedidos semanales de viandas (Almuerzo y Cena).
 

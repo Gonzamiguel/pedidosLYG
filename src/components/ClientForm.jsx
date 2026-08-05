@@ -6,7 +6,7 @@ export default function ClientForm({ company, value, onChange, errors = {} }) {
 
   return (
     <section className="animate-fade-up rounded-2xl border border-slate-200/80 bg-white/90 p-3.5 shadow-sm sm:p-5">
-      <h2 className="font-display text-base font-semibold text-slate-900 sm:text-lg">
+      <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
         Tus datos
       </h2>
       <p className="mt-0.5 text-sm text-slate-500">

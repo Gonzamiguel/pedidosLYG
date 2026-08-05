@@ -51,7 +51,7 @@ export default function CompaniesTab({ companies, onCreate, onDelete }) {
         onSubmit={submit}
         className="h-fit rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
       >
-        <h3 className="font-display text-lg font-semibold text-slate-900">
+        <h3 className="text-lg font-semibold text-slate-900">
           Nueva empresa
         </h3>
         <p className="mt-1 text-sm text-slate-500">
@@ -106,7 +106,7 @@ export default function CompaniesTab({ companies, onCreate, onDelete }) {
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h3 className="font-display text-lg font-semibold text-slate-900">
+            <h3 className="text-lg font-semibold text-slate-900">
               Empresas y links
             </h3>
             <p className="text-sm text-slate-500">

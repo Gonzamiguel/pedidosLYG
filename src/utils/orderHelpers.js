@@ -62,7 +62,7 @@ export function buildWhatsAppMessage({
   dishesById,
 }) {
   const lines = [
-    `*Pedido L&G*`,
+    `*Pedidos Logística y Gastronomía*`,
     `Empresa: ${company?.code || ''} — ${company?.name || ''}`,
   ]
   if (week) {

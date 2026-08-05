@@ -113,7 +113,7 @@ export default function OrderPage() {
       <div className="flex min-h-dvh flex-col items-center justify-center px-4">
         <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm">
           <AlertCircle className="mx-auto h-10 w-10 text-amber-600" />
-          <h1 className="mt-3 font-display text-xl font-bold text-slate-900">
+          <h1 className="mt-3 text-xl font-bold text-slate-900">
             Link no válido
           </h1>
           <p className="mt-2 text-sm text-slate-600">
@@ -139,7 +139,7 @@ export default function OrderPage() {
         <div className="mx-auto max-w-lg px-4 py-12">
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
             <CalendarDays className="mx-auto h-10 w-10 text-amber-700" />
-            <h1 className="mt-3 font-display text-xl font-bold text-slate-900">
+            <h1 className="mt-3 text-xl font-bold text-slate-900">
               Pedidos no habilitados
             </h1>
             <p className="mt-2 text-sm text-slate-600">
@@ -163,7 +163,7 @@ export default function OrderPage() {
               <CalendarDays className="h-4 w-4" />
               Semana del pedido
             </p>
-            <p className="mt-1 font-display text-lg font-semibold text-slate-900">
+            <p className="mt-1 text-lg font-semibold text-slate-900">
               {weekLabel(activeWeek)}
             </p>
             <p className="text-sm text-slate-600">{weekRangeText(activeWeek)}</p>
@@ -183,7 +183,7 @@ export default function OrderPage() {
           />
 
           <div className="pt-1">
-            <h2 className="font-display text-lg font-semibold text-slate-900 sm:text-xl">
+            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
               {getDayLabel(activeDay)}
             </h2>
             <p className="text-xs text-slate-500 sm:text-sm">
@@ -236,7 +236,7 @@ export default function OrderPage() {
             </div>
             <div className="min-w-0">
               <p className="text-[11px] text-slate-500">Total semana</p>
-              <p className="truncate font-display text-base font-bold text-slate-900 sm:text-lg">
+              <p className="truncate text-base font-bold text-slate-900 sm:text-lg">
                 {total}{' '}
                 <span className="text-sm font-semibold text-slate-600">
                   viandas

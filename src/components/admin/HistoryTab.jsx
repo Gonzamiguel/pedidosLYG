@@ -138,7 +138,7 @@ export default function HistoryTab({
 
       {!!weekStats.length && (
         <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <h3 className="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-slate-900">
+          <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-slate-900">
             <History className="h-5 w-5 text-amber-600" />
             Resumen por semana
           </h3>
@@ -177,7 +177,7 @@ export default function HistoryTab({
       )}
 
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h3 className="mb-3 font-display text-lg font-semibold text-slate-900">
+        <h3 className="mb-3 text-lg font-semibold text-slate-900">
           Historial de pedidos
         </h3>
 
@@ -298,7 +298,7 @@ function Metric({ label, value }) {
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {label}
       </p>
-      <p className="mt-1 font-display text-3xl font-bold text-amber-700">
+      <p className="mt-1 text-3xl font-bold text-amber-700">
         {value}
       </p>
     </div>

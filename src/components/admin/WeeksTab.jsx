@@ -80,7 +80,7 @@ export default function WeeksTab({
           onSubmit={submit}
           className="h-fit rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
         >
-          <h3 className="font-display text-lg font-semibold text-slate-900">
+          <h3 className="text-lg font-semibold text-slate-900">
             Nueva semana
           </h3>
           <p className="mt-1 text-sm text-slate-500">
@@ -177,7 +177,7 @@ export default function WeeksTab({
         <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="font-display text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-slate-900">
                 Semanas de la empresa
               </h3>
               {active ? (

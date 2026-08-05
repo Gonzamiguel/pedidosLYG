@@ -17,6 +17,7 @@ import {
   logoutAdmin,
   subscribeAdminAuth,
 } from '../firebase/auth'
+import { APP_NAME } from '../data/brand'
 import { getDataMode } from '../firebase/services'
 import DishesTab from './admin/DishesTab'
 import MenuConfigTab from './admin/MenuConfigTab'
@@ -163,8 +164,8 @@ export default function AdminDashboard({ onBack, catalog }) {
               <Lock className="h-6 w-6" />
             </div>
             <div>
-              <p className="font-display text-xl font-bold text-slate-900">
-                Pedidos L&G
+              <p className="text-lg font-semibold tracking-tight text-slate-900">
+                {APP_NAME}
               </p>
               <p className="text-sm text-slate-500">Acceso administrador</p>
             </div>
@@ -257,10 +258,10 @@ export default function AdminDashboard({ onBack, catalog }) {
       {/* Sidebar desktop */}
       <aside className="sticky top-0 flex h-dvh w-64 shrink-0 flex-col border-r border-stone-200 bg-white">
         <div className="border-b border-stone-200 px-5 py-5">
-          <p className="font-display text-xl font-bold tracking-tight text-slate-900">
-            Pedidos L&G
+          <p className="text-[15px] font-semibold leading-snug tracking-tight text-slate-900">
+            {APP_NAME}
           </p>
-          <p className="mt-0.5 text-xs font-medium uppercase tracking-wider text-amber-700">
+          <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">
             Administración
           </p>
         </div>
@@ -325,7 +326,7 @@ export default function AdminDashboard({ onBack, catalog }) {
               <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">
                 Módulo
               </p>
-              <h1 className="font-display text-2xl font-bold text-slate-900">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
                 {current.label}
               </h1>
               <p className="mt-0.5 text-sm text-slate-500">{current.description}</p>
