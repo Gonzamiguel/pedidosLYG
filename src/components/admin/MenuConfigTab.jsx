@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { Save } from 'lucide-react'
 import { DAYS, MAX_DISHES_PER_SLOT } from '../../data/constants'
 
+const field =
+  'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+
 export default function MenuConfigTab({
   companies,
   dishes,
@@ -58,45 +61,45 @@ export default function MenuConfigTab({
 
   const SlotPicker = ({ title, slot, selected, tone }) => (
     <div
-      className={`rounded-xl border p-3 ${
+      className={`rounded-2xl border p-4 ${
         tone === 'lunch'
-          ? 'border-amber-500/30 bg-amber-500/5'
-          : 'border-indigo-500/30 bg-indigo-500/5'
+          ? 'border-amber-200 bg-amber-50/50'
+          : 'border-indigo-200 bg-indigo-50/50'
       }`}
     >
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <h4
-          className={`text-sm font-semibold ${
-            tone === 'lunch' ? 'text-amber-400' : 'text-indigo-300'
+          className={`font-display text-base font-semibold ${
+            tone === 'lunch' ? 'text-amber-800' : 'text-indigo-800'
           }`}
         >
           {title}
         </h4>
-        <span className="text-xs text-slate-400">
+        <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-stone-200">
           {selected.length}/{MAX_DISHES_PER_SLOT}
         </span>
       </div>
-      <ul className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+      <ul className="max-h-[420px] space-y-1.5 overflow-y-auto pr-1">
         {dishes.map((dish) => {
           const checked = selected.includes(dish.id)
           return (
             <li key={dish.id}>
               <label
-                className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 transition ${
+                className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition ${
                   checked
-                    ? 'bg-slate-700/80 ring-1 ring-amber-400/40'
-                    : 'hover:bg-slate-800/80'
+                    ? 'bg-white shadow-sm ring-1 ring-amber-300'
+                    : 'bg-white/60 hover:bg-white'
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggle(slot, dish.id)}
-                  className="h-4 w-4 accent-amber-400"
+                  className="h-4 w-4 accent-amber-600"
                 />
-                <span className="text-sm text-slate-200">
+                <span className="text-sm text-slate-800">
                   {dish.name}
-                  <span className="ml-2 text-xs text-slate-500">{dish.tag}</span>
+                  <span className="ml-2 text-xs text-slate-400">{dish.tag}</span>
                 </span>
               </label>
             </li>
@@ -107,54 +110,66 @@ export default function MenuConfigTab({
   )
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-xs text-slate-400">Empresa</span>
-          <select
-            className="mt-1 w-full min-h-11 rounded-lg border border-slate-600 bg-slate-900 px-3 text-sm text-white outline-none focus:border-amber-400"
-            value={companyId}
-            onChange={(e) => setCompanyId(e.target.value)}
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="block">
+            <span className="text-sm font-medium text-slate-700">Empresa</span>
+            <select
+              className={field}
+              value={companyId}
+              onChange={(e) => setCompanyId(e.target.value)}
+            >
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.code} — {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium text-slate-700">Día</span>
+            <select
+              className={field}
+              value={dayId}
+              onChange={(e) => setDayId(e.target.value)}
+            >
+              {DAYS.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            disabled={busy || !companyId}
+            onClick={save}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-amber-500 px-5 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
           >
-            {companies.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.code} — {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
-          <span className="text-xs text-slate-400">Día</span>
-          <select
-            className="mt-1 w-full min-h-11 rounded-lg border border-slate-600 bg-slate-900 px-3 text-sm text-white outline-none focus:border-amber-400"
-            value={dayId}
-            onChange={(e) => setDayId(e.target.value)}
-          >
-            {DAYS.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            <Save className="h-4 w-4" />
+            Guardar menú
+          </button>
+          {msg && (
+            <p
+              className={`text-sm ${
+                msg.includes('Error') || msg.includes('Máximo')
+                  ? 'text-rose-600'
+                  : 'text-emerald-700'
+              }`}
+            >
+              {msg}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <SlotPicker title="Almuerzo" slot="lunch" selected={lunch} tone="lunch" />
         <SlotPicker title="Cena" slot="dinner" selected={dinner} tone="dinner" />
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          disabled={busy || !companyId}
-          onClick={save}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-amber-500 px-4 text-sm font-semibold text-slate-900 hover:bg-amber-400 disabled:opacity-50"
-        >
-          <Save className="h-4 w-4" />
-          Guardar menú
-        </button>
-        {msg && <p className="text-sm text-slate-300">{msg}</p>}
       </div>
     </div>
   )

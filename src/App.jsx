@@ -5,7 +5,7 @@ import ClientForm from './components/ClientForm'
 import DayTabs from './components/DayTabs'
 import MenuCard from './components/MenuCard'
 import OrderConfirmModal from './components/OrderConfirmModal'
-import MasterPanel from './components/MasterPanel'
+import AdminDashboard from './components/AdminDashboard'
 import { emptyOrderDetails, getDayLabel } from './data/constants'
 import { useCatalog } from './hooks/useCatalog'
 import {
@@ -33,6 +33,18 @@ export default function App() {
   const total = useMemo(() => countTotalMeals(details), [details])
   const company = catalog.companiesById[client.companyId]
   const menu = catalog.getMenuFor(client.companyId, activeDay)
+
+  if (adminOpen) {
+    return (
+      <AdminDashboard
+        catalog={catalog}
+        onBack={() => {
+          setAdminOpen(false)
+          catalog.refresh()
+        }}
+      />
+    )
+  }
 
   const validateClient = () => {
     const next = {}
@@ -197,12 +209,6 @@ export default function App() {
         details={details}
         dishesById={catalog.dishesById}
         onSubmit={handleSubmitOrder}
-      />
-
-      <MasterPanel
-        open={adminOpen}
-        onClose={() => setAdminOpen(false)}
-        catalog={catalog}
       />
     </div>
   )

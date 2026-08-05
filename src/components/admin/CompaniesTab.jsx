@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { Building2, Plus } from 'lucide-react'
 
+const field =
+  'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+
 export default function CompaniesTab({ companies, onCreate }) {
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
@@ -26,17 +29,23 @@ export default function CompaniesTab({ companies, onCreate }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
       <form
         onSubmit={submit}
-        className="rounded-xl border border-slate-700 bg-slate-800/60 p-4"
+        className="h-fit rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
       >
-        <h3 className="text-sm font-semibold text-amber-400">Nueva empresa</h3>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <h3 className="font-display text-lg font-semibold text-slate-900">
+          Nueva empresa
+        </h3>
+        <p className="mt-1 text-sm text-slate-500">
+          El código identifica la empresa en pedidos y menús.
+        </p>
+
+        <div className="mt-4 space-y-3">
           <label className="block">
-            <span className="text-xs text-slate-400">Código</span>
+            <span className="text-sm font-medium text-slate-700">Código</span>
             <input
-              className="mt-1 w-full min-h-11 rounded-lg border border-slate-600 bg-slate-900 px-3 text-sm uppercase text-white outline-none focus:border-amber-400"
+              className={`${field} uppercase`}
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="LYG"
@@ -45,9 +54,9 @@ export default function CompaniesTab({ companies, onCreate }) {
             />
           </label>
           <label className="block">
-            <span className="text-xs text-slate-400">Nombre</span>
+            <span className="text-sm font-medium text-slate-700">Nombre</span>
             <input
-              className="mt-1 w-full min-h-11 rounded-lg border border-slate-600 bg-slate-900 px-3 text-sm text-white outline-none focus:border-amber-400"
+              className={field}
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="LYG Servicios Industriales"
@@ -55,34 +64,55 @@ export default function CompaniesTab({ companies, onCreate }) {
             />
           </label>
         </div>
-        {error && <p className="mt-2 text-xs text-rose-400">{error}</p>}
-        {ok && <p className="mt-2 text-xs text-emerald-400">{ok}</p>}
+
+        {error && (
+          <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            {error}
+          </p>
+        )}
+        {ok && (
+          <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+            {ok}
+          </p>
+        )}
+
         <button
           type="submit"
           disabled={busy}
-          className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-lg bg-amber-500 px-4 text-sm font-semibold text-slate-900 hover:bg-amber-400 disabled:opacity-50"
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
           Agregar empresa
         </button>
       </form>
 
-      <ul className="space-y-2">
-        {companies.map((c) => (
-          <li
-            key={c.id}
-            className="flex items-center gap-3 rounded-xl border border-slate-700 bg-slate-800/40 px-3 py-3"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/15 text-amber-400">
-              <Building2 className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="font-semibold text-white">{c.code}</p>
-              <p className="text-sm text-slate-400">{c.name}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="font-display text-lg font-semibold text-slate-900">
+            Empresas activas
+          </h3>
+          <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+            {companies.length}
+          </span>
+        </div>
+
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {companies.map((c) => (
+            <li
+              key={c.id}
+              className="flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3.5"
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900">{c.code}</p>
+                <p className="truncate text-sm text-slate-500">{c.name}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   )
 }

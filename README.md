@@ -1,13 +1,16 @@
-# ViandApp — Pedidos de Viandas Empresariales
+# Pedidos L&G
 
-Plataforma multi-empresa para pedidos semanales de viandas (Almuerzo y Cena), pensada **mobile-first** para empleados que cargan desde el celular.
+Plataforma multi-empresa para pedidos semanales de viandas (Almuerzo y Cena).
+
+- **Empleados:** formulario mobile-first
+- **Administradores:** panel de escritorio a pantalla completa (sidebar + módulos)
 
 ## Stack
 
-- **Frontend:** React 19 + Vite
-- **Estilos:** Tailwind CSS v4 + Lucide Icons
-- **Backend:** Firebase Firestore + Firebase Authentication
-- **Deploy:** Vercel
+- React 19 + Vite
+- Tailwind CSS v4 + Lucide Icons
+- Firebase Firestore + Authentication
+- Deploy en Vercel
 
 ## Inicio rápido
 
@@ -16,13 +19,12 @@ npm install
 npm run dev
 ```
 
-Las credenciales van en `.env` (ya configurado localmente). `.env` está en `.gitignore`.
+Credenciales en `.env` (no se versiona). Ver `.env.example`.
 
-## Admin con rol en Firestore
+## Admin
 
-1. En **Firebase Authentication** → creá un usuario Email/Password.
-2. Copiá el **UID** del usuario.
-3. En **Firestore** → colección `users` → documento con ID = **UID**:
+1. Creá usuario en Firebase Authentication (Email/Password)
+2. En Firestore → `users/{UID}`:
 
 ```json
 {
@@ -32,49 +34,24 @@ Las credenciales van en `.env` (ya configurado localmente). `.env` está en `.gi
 }
 ```
 
-También se acepta documento con ID = email (mismo contenido).
+3. En la app → **Admin** → iniciar sesión
+4. Tocá **Cargar Seed** para empresas LYG/GYL, platos y menús
 
-4. En la app, tocá el ícono **Admin** (escudo) e iniciá sesión con ese email/contraseña.
-5. Tocá **Seed** para cargar empresas LYG/GYL, 10 platos y menús semanales.
+Publicá las reglas de `firestore.rules` en Firebase.
 
-### Reglas Firestore
+## Módulos del panel admin
 
-Publicá el archivo `firestore.rules` del repo (o desde Firebase Console):
-
-- Empleados: leen menús/platos/empresas y **crean** pedidos (sin login)
-- Admin (`role: admin`): escribe catálogo/menús y lee consolidado de pedidos
-
-## Modelo de datos
-
-| Colección | Descripción |
-|-----------|-------------|
-| `users` | Perfiles; admin = `{ role: "admin", email }` |
-| `companies` | Empresas (código + nombre) |
-| `dishes` | Catálogo central de platos |
-| `weekly_menus` | Menú por empresa y día (`{companyId}_{dayId}`) |
-| `orders` | Pedidos con detalle semanal |
-
-## Funcionalidades
-
-### Empleado (mobile-first)
-- Formulario táctil: empresa, nombre, sector, WhatsApp
-- Tabs Lun–Dom con badges
-- Almuerzo (ámbar) / Cena (índigo) con − / + / input numérico
-- Footer sticky con total + revisar/enviar
-- WhatsApp prearmado
-
-### Admin
-- Login Firebase Auth + verificación `role: admin`
-- Platos, Config. Menú, Empresas, Consolidado + CSV
-
-## Deploy en Vercel
-
-Cargá las variables `VITE_FIREBASE_*` en el proyecto de Vercel y desplegá.
+| Módulo | Uso |
+|--------|-----|
+| Platos | Catálogo central |
+| Configurar menú | Hasta 4 platos por turno / empresa / día |
+| Empresas | Altas de empresas |
+| Consolidado cocina | Métricas + CSV |
 
 ## Scripts
 
 | Comando | Descripción |
 |---------|-------------|
-| `npm run dev` | Desarrollo local |
-| `npm run build` | Build de producción |
+| `npm run dev` | Desarrollo |
+| `npm run build` | Build producción |
 | `npm run preview` | Preview del build |

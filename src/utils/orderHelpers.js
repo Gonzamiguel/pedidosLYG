@@ -60,7 +60,7 @@ export function buildWhatsAppMessage({
   dishesById,
 }) {
   const lines = [
-    `*Pedido ViandApp*`,
+    `*Pedido L&G*`,
     `Empresa: ${company?.code || ''} — ${company?.name || ''}`,
     `Solicitante: ${userName}`,
     `Sector: ${userSector}`,
@@ -179,7 +179,7 @@ export function exportKitchenCsv(consolidated, dishesById, companyLabel) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `viandapp-cocina-${new Date().toISOString().slice(0, 10)}.csv`
+  a.download = `pedidos-lg-cocina-${new Date().toISOString().slice(0, 10)}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }

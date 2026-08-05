@@ -6,6 +6,9 @@ import {
   exportKitchenCsv,
 } from '../../utils/orderHelpers'
 
+const field =
+  'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+
 export default function ConsolidatedTab({
   orders,
   companies,
@@ -20,9 +23,7 @@ export default function ConsolidatedTab({
   )
 
   const companyLabel =
-    filter === 'all'
-      ? 'Todas'
-      : companiesById[filter]?.code || filter
+    filter === 'all' ? 'Todas' : companiesById[filter]?.code || filter
 
   const metrics = [
     { label: 'Pedidos', value: consolidated.metrics.totalOrders },
@@ -33,94 +34,102 @@ export default function ConsolidatedTab({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <label className="block flex-1">
-          <span className="text-xs text-slate-400">Filtrar por empresa</span>
-          <select
-            className="mt-1 w-full min-h-11 rounded-lg border border-slate-600 bg-slate-900 px-3 text-sm text-white outline-none focus:border-amber-400"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <label className="block w-full max-w-md">
+            <span className="text-sm font-medium text-slate-700">
+              Filtrar por empresa
+            </span>
+            <select
+              className={field}
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              <option value="all">Todas las empresas</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.code} — {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={() =>
+              exportKitchenCsv(consolidated, dishesById, companyLabel)
+            }
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-500"
           >
-            <option value="all">Todas las empresas</option>
-            {companies.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.code} — {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          onClick={() =>
-            exportKitchenCsv(consolidated, dishesById, companyLabel)
-          }
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-500"
-        >
-          <Download className="h-4 w-4" />
-          Exportar CSV / Excel
-        </button>
+            <Download className="h-4 w-4" />
+            Exportar CSV / Excel
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {metrics.map((m) => (
           <div
             key={m.label}
-            className="rounded-xl border border-slate-700 bg-slate-800/50 px-3 py-3"
+            className="rounded-2xl border border-stone-200 bg-white px-4 py-4 shadow-sm"
           >
-            <p className="text-xs text-slate-400">{m.label}</p>
-            <p className="mt-1 font-display text-2xl font-bold text-amber-400">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              {m.label}
+            </p>
+            <p className="mt-1 font-display text-3xl font-bold text-amber-700">
               {m.value}
             </p>
           </div>
         ))}
       </div>
 
-      <div className="space-y-3">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-300">
-          <UtensilsCrossed className="h-4 w-4 text-amber-400" />
+      <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-slate-900">
+          <UtensilsCrossed className="h-5 w-5 text-amber-600" />
           Resumen de cocina por día
         </h3>
 
-        {DAYS.map((day) => {
-          const lunchEntries = Object.entries(
-            consolidated.byDay[day.id].lunch,
-          ).sort((a, b) => b[1] - a[1])
-          const dinnerEntries = Object.entries(
-            consolidated.byDay[day.id].dinner,
-          ).sort((a, b) => b[1] - a[1])
+        <div className="space-y-3">
+          {DAYS.map((day) => {
+            const lunchEntries = Object.entries(
+              consolidated.byDay[day.id].lunch,
+            ).sort((a, b) => b[1] - a[1])
+            const dinnerEntries = Object.entries(
+              consolidated.byDay[day.id].dinner,
+            ).sort((a, b) => b[1] - a[1])
 
-          if (!lunchEntries.length && !dinnerEntries.length) return null
+            if (!lunchEntries.length && !dinnerEntries.length) return null
 
-          return (
-            <div
-              key={day.id}
-              className="rounded-xl border border-slate-700 bg-slate-800/40 p-3"
-            >
-              <p className="font-semibold text-white">{day.label}</p>
-              <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                <SlotSummary
-                  title={MEAL_SLOTS.lunch.label}
-                  entries={lunchEntries}
-                  dishesById={dishesById}
-                  tone="lunch"
-                />
-                <SlotSummary
-                  title={MEAL_SLOTS.dinner.label}
-                  entries={dinnerEntries}
-                  dishesById={dishesById}
-                  tone="dinner"
-                />
+            return (
+              <div
+                key={day.id}
+                className="rounded-xl border border-stone-200 bg-stone-50/70 p-4"
+              >
+                <p className="font-semibold text-slate-900">{day.label}</p>
+                <div className="mt-3 grid gap-4 md:grid-cols-2">
+                  <SlotSummary
+                    title={MEAL_SLOTS.lunch.label}
+                    entries={lunchEntries}
+                    dishesById={dishesById}
+                    tone="lunch"
+                  />
+                  <SlotSummary
+                    title={MEAL_SLOTS.dinner.label}
+                    entries={dinnerEntries}
+                    dishesById={dishesById}
+                    tone="dinner"
+                  />
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
 
-        {!consolidated.metrics.grandTotal && (
-          <p className="rounded-xl border border-dashed border-slate-600 px-4 py-8 text-center text-sm text-slate-400">
-            Todavía no hay pedidos para consolidar.
-          </p>
-        )}
-      </div>
+          {!consolidated.metrics.grandTotal && (
+            <p className="rounded-xl border border-dashed border-stone-300 px-4 py-10 text-center text-sm text-slate-500">
+              Todavía no hay pedidos para consolidar.
+            </p>
+          )}
+        </div>
+      </section>
     </div>
   )
 }
@@ -128,10 +137,10 @@ export default function ConsolidatedTab({
 function SlotSummary({ title, entries, dishesById, tone }) {
   if (!entries.length) {
     return (
-      <div className="text-xs text-slate-500">
+      <div className="text-sm text-slate-400">
         <p
-          className={`mb-1 font-bold uppercase tracking-wide ${
-            tone === 'lunch' ? 'text-amber-500/70' : 'text-indigo-400/70'
+          className={`mb-1 text-xs font-bold uppercase tracking-wide ${
+            tone === 'lunch' ? 'text-amber-700/70' : 'text-indigo-700/70'
           }`}
         >
           {title}
@@ -144,19 +153,22 @@ function SlotSummary({ title, entries, dishesById, tone }) {
   return (
     <div>
       <p
-        className={`mb-1 text-xs font-bold uppercase tracking-wide ${
-          tone === 'lunch' ? 'text-amber-400' : 'text-indigo-300'
+        className={`mb-1.5 text-xs font-bold uppercase tracking-wide ${
+          tone === 'lunch' ? 'text-amber-700' : 'text-indigo-700'
         }`}
       >
         {title}
       </p>
-      <ul className="space-y-1 text-sm text-slate-200">
+      <ul className="space-y-1.5 text-sm text-slate-700">
         {entries.map(([dishId, count]) => (
-          <li key={dishId} className="flex justify-between gap-2">
+          <li
+            key={dishId}
+            className="flex justify-between gap-3 rounded-lg bg-white px-2.5 py-1.5 ring-1 ring-stone-200/80"
+          >
             <span className="truncate">
               {dishesById[dishId]?.name || dishId}
             </span>
-            <span className="shrink-0 font-bold text-amber-300">{count}x</span>
+            <span className="shrink-0 font-bold text-amber-700">{count}x</span>
           </li>
         ))}
       </ul>
