@@ -36,8 +36,19 @@ function normalizeDoc(id, data) {
 
 export async function getCompanies() {
   if (!isFirebaseConfigured) return loadLocalState().companies
-  const snap = await getDocs(query(collection(db, 'companies'), orderBy('name')))
-  return snap.docs.map((d) => normalizeDoc(d.id, d.data()))
+  try {
+    const snap = await getDocs(
+      query(collection(db, 'companies'), orderBy('name')),
+    )
+    return snap.docs.map((d) => normalizeDoc(d.id, d.data()))
+  } catch (err) {
+    // Fallback si falta índice o hay docs sin campo name
+    console.warn('getCompanies orderBy falló, reintento sin orden', err)
+    const snap = await getDocs(collection(db, 'companies'))
+    return snap.docs
+      .map((d) => normalizeDoc(d.id, d.data()))
+      .sort((a, b) => (a.name || a.code || '').localeCompare(b.name || b.code || '', 'es'))
+  }
 }
 
 export async function createCompany({ code, name }) {
@@ -90,8 +101,16 @@ export async function deleteCompany(companyId) {
 
 export async function getDishes() {
   if (!isFirebaseConfigured) return loadLocalState().dishes
-  const snap = await getDocs(query(collection(db, 'dishes'), orderBy('name')))
-  return snap.docs.map((d) => normalizeDoc(d.id, d.data()))
+  try {
+    const snap = await getDocs(query(collection(db, 'dishes'), orderBy('name')))
+    return snap.docs.map((d) => normalizeDoc(d.id, d.data()))
+  } catch (err) {
+    console.warn('getDishes orderBy falló, reintento sin orden', err)
+    const snap = await getDocs(collection(db, 'dishes'))
+    return snap.docs
+      .map((d) => normalizeDoc(d.id, d.data()))
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'))
+  }
 }
 
 export async function createDish({ name, tag, desc }) {

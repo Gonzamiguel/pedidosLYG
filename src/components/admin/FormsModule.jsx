@@ -39,12 +39,6 @@ export default function FormsModule({ catalog }) {
   const [copiedId, setCopiedId] = useState('')
   const [savedLink, setSavedLink] = useState('')
 
-  useEffect(() => {
-    if (!companyId && catalog.companies[0]) {
-      setCompanyId(catalog.companies[0].id)
-    }
-  }, [catalog.companies, companyId])
-
   const visibleDayIds = useMemo(
     () => dayIdsInRange(dates.startDate, dates.endDate),
     [dates.startDate, dates.endDate],
@@ -56,10 +50,15 @@ export default function FormsModule({ catalog }) {
     }
   }, [visibleDayIds, activeDay])
 
-  const startCreate = () => {
+  const startCreate = async () => {
+    // Recargar empresas/platos por si se acabaron de crear en Configuración
+    try {
+      await catalog.refresh()
+    } catch {
+      /* ignore */
+    }
     setMode('create')
     setEditingId('')
-    setCompanyId(catalog.companies[0]?.id || '')
     setDates(defaultWeekDraft())
     setDays(emptyFormDays())
     setActiveDay('lun')
@@ -67,6 +66,18 @@ export default function FormsModule({ catalog }) {
     setOk('')
     setSavedLink('')
   }
+
+  // Cuando entran al alta o llegan empresas nuevas, seleccionar la primera
+  useEffect(() => {
+    if (mode !== 'create' && mode !== 'edit') return
+    if (!catalog.companies.length) {
+      setCompanyId('')
+      return
+    }
+    if (!catalog.companies.some((c) => c.id === companyId)) {
+      setCompanyId(catalog.companies[0].id)
+    }
+  }, [mode, catalog.companies, companyId])
 
   const startEdit = (form) => {
     setMode('edit')

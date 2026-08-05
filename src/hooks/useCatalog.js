@@ -15,6 +15,15 @@ import {
   updateForm,
 } from '../firebase/services'
 
+async function safeLoad(loader, fallback = []) {
+  try {
+    return await loader()
+  } catch (err) {
+    console.error(err)
+    return fallback
+  }
+}
+
 export function useCatalog() {
   const [companies, setCompanies] = useState([])
   const [dishes, setDishes] = useState([])
@@ -27,19 +36,18 @@ export function useCatalog() {
     setLoading(true)
     setError('')
     try {
-      const [c, d, f] = await Promise.all([
-        getCompanies(),
-        getDishes(),
-        getForms(),
+      // Cada colección se carga por separado: si falla "forms",
+      // igual se ven empresas y platos.
+      const [c, d, f, o] = await Promise.all([
+        safeLoad(getCompanies),
+        safeLoad(getDishes),
+        safeLoad(getForms),
+        safeLoad(getOrders),
       ])
       setCompanies(c)
       setDishes(d)
       setForms(f)
-      try {
-        setOrders(await getOrders())
-      } catch {
-        setOrders([])
-      }
+      setOrders(o)
     } catch (err) {
       console.error(err)
       setError(err.message || 'Error al cargar datos')
@@ -78,34 +86,57 @@ export function useCatalog() {
     getFormById,
     async addCompany(data) {
       const created = await createCompany(data)
+      setCompanies((prev) => {
+        if (prev.some((c) => c.id === created.id)) {
+          return prev.map((c) => (c.id === created.id ? created : c))
+        }
+        return [...prev, created].sort((a, b) =>
+          (a.name || '').localeCompare(b.name || '', 'es'),
+        )
+      })
       await refresh()
       return created
     },
     async removeCompany(id) {
       await deleteCompany(id)
+      setCompanies((prev) => prev.filter((c) => c.id !== id))
       await refresh()
     },
     async addDish(data) {
       const created = await createDish(data)
+      setDishes((prev) => {
+        if (prev.some((d) => d.id === created.id)) return prev
+        return [...prev, created].sort((a, b) =>
+          (a.name || '').localeCompare(b.name || '', 'es'),
+        )
+      })
       await refresh()
       return created
     },
     async removeDish(id) {
       await deleteDish(id)
+      setDishes((prev) => prev.filter((d) => d.id !== id))
       await refresh()
     },
     async addForm(data) {
       const created = await createForm(data)
+      setForms((prev) => [created, ...prev.filter((f) => f.id !== created.id)])
       await refresh()
       return created
     },
     async editForm(formId, patch) {
       const saved = await updateForm(formId, patch)
+      if (saved) {
+        setForms((prev) =>
+          prev.map((f) => (f.id === formId ? saved : f)),
+        )
+      }
       await refresh()
       return saved
     },
     async removeForm(formId) {
       await deleteForm(formId)
+      setForms((prev) => prev.filter((f) => f.id !== formId))
       await refresh()
     },
     async submitOrder(data) {
