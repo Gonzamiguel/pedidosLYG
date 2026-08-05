@@ -7,8 +7,8 @@ import DayTabs from '../components/DayTabs'
 import MenuCard from '../components/MenuCard'
 import OrderConfirmModal from '../components/OrderConfirmModal'
 import { emptyOrderDetails, getDayLabel } from '../data/constants'
+import { dayIdsInRange } from '../data/formHelpers'
 import { useCatalog } from '../hooks/useCatalog'
-import { findCompanyBySlug } from '../utils/companyLinks'
 import { weekLabel, weekRangeText } from '../utils/weekHelpers'
 import {
   countTotalMeals,
@@ -24,39 +24,52 @@ const EMPTY_CLIENT = {
 }
 
 export default function OrderPage() {
-  const { companySlug } = useParams()
+  const { formId } = useParams()
   const catalog = useCatalog()
+  const [form, setForm] = useState(null)
+  const [formLoading, setFormLoading] = useState(true)
   const [client, setClient] = useState(EMPTY_CLIENT)
   const [details, setDetails] = useState(emptyOrderDetails)
   const [activeDay, setActiveDay] = useState('lun')
   const [errors, setErrors] = useState({})
   const [confirmOpen, setConfirmOpen] = useState(false)
 
-  const company = useMemo(
-    () => findCompanyBySlug(catalog.companies, companySlug),
-    [catalog.companies, companySlug],
-  )
-
-  const activeWeek = useMemo(
-    () => (company ? catalog.getActiveWeek(company.id) : null),
-    [catalog, company],
-  )
-
   useEffect(() => {
-    if (!company) return
-    setClient((prev) => ({ ...prev, companyId: company.id }))
-    setDetails(emptyOrderDetails())
-    setActiveDay('lun')
-    setErrors({})
-  }, [company?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+    let alive = true
+    setFormLoading(true)
+    catalog
+      .getFormById(formId)
+      .then((f) => {
+        if (!alive) return
+        setForm(f)
+        if (f) {
+          const days = dayIdsInRange(f.startDate, f.endDate)
+          setActiveDay(days[0] || 'lun')
+          setClient((prev) => ({ ...prev, companyId: f.companyId }))
+          setDetails(emptyOrderDetails())
+        }
+      })
+      .finally(() => {
+        if (alive) setFormLoading(false)
+      })
+    return () => {
+      alive = false
+    }
+  }, [formId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const company = catalog.companiesById[form?.companyId]
+  const visibleDays = useMemo(
+    () => (form ? dayIdsInRange(form.startDate, form.endDate) : []),
+    [form],
+  )
 
   const total = useMemo(() => countTotalMeals(details), [details])
-  const menu = catalog.getMenuFor(company?.id || '', activeDay)
+  const dayMenu = form?.days?.[activeDay] || { lunch: [], dinner: [] }
 
   const validateClient = () => {
     const next = {}
-    if (!company) next.companyId = 'Empresa no encontrada'
-    if (!activeWeek) next.week = 'No hay semana activa'
+    if (!form || !company) next.companyId = 'Formulario no válido'
+    if (form?.status === 'closed') next.week = 'Formulario cerrado'
     if (!client.userName.trim()) next.userName = 'Ingresá tu nombre'
     if (!client.userSector.trim()) next.userSector = 'Ingresá el sector'
     if (!client.userPhone.trim()) next.userPhone = 'Ingresá un teléfono'
@@ -78,10 +91,10 @@ export default function OrderPage() {
 
   const handleSubmitOrder = async () => {
     await catalog.submitOrder({
-      companyId: company.id,
-      weekId: activeWeek.id,
-      weekStart: activeWeek.startDate,
-      weekEnd: activeWeek.endDate,
+      companyId: form.companyId,
+      formId: form.id,
+      weekStart: form.startDate,
+      weekEnd: form.endDate,
       userName: client.userName,
       userSector: client.userSector,
       userPhone: client.userPhone,
@@ -90,40 +103,29 @@ export default function OrderPage() {
     })
   }
 
-  if (catalog.loading) {
+  if (catalog.loading || formLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center text-slate-500">
-        Cargando menú…
+        Cargando formulario…
       </div>
     )
   }
 
-  if (catalog.error) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-8 text-sm text-rose-700">
-          {catalog.error}
-        </p>
-      </div>
-    )
-  }
-
-  if (!company) {
+  if (!form || !company) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm">
-          <AlertCircle className="mx-auto h-10 w-10 text-amber-600" />
-          <h1 className="mt-3 text-xl font-bold text-slate-900">
+        <div className="w-full max-w-md rounded-xl border border-stone-200 bg-white p-8 text-center shadow-sm">
+          <AlertCircle className="mx-auto h-10 w-10 text-slate-500" />
+          <h1 className="mt-3 text-xl font-semibold text-slate-900">
             Link no válido
           </h1>
           <p className="mt-2 text-sm text-slate-600">
-            No encontramos la empresa{' '}
-            <code className="rounded bg-stone-100 px-1">{companySlug}</code>.
-            Pedile al administrador el link correcto.
+            Este formulario no existe o fue eliminado. Pedile al administrador
+            el link correcto.
           </p>
           <Link
             to="/"
-            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-500 px-5 text-sm font-semibold text-white hover:bg-amber-600"
+            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-800 px-5 text-sm font-semibold text-white hover:bg-slate-900"
           >
             Ir al inicio
           </Link>
@@ -132,19 +134,18 @@ export default function OrderPage() {
     )
   }
 
-  if (!activeWeek) {
+  if (form.status === 'closed') {
     return (
       <div className="pb-8">
         <Header company={company} />
         <div className="mx-auto max-w-lg px-4 py-12">
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
-            <CalendarDays className="mx-auto h-10 w-10 text-amber-700" />
-            <h1 className="mt-3 text-xl font-bold text-slate-900">
-              Pedidos no habilitados
+          <div className="rounded-xl border border-stone-200 bg-white p-6 text-center shadow-sm">
+            <CalendarDays className="mx-auto h-10 w-10 text-slate-500" />
+            <h1 className="mt-3 text-xl font-semibold text-slate-900">
+              Formulario cerrado
             </h1>
             <p className="mt-2 text-sm text-slate-600">
-              {company.code} todavía no tiene una semana activa. El
-              administrador debe abrir el período (desde / hasta) en el panel.
+              El período {weekRangeText(form)} ya no admite pedidos.
             </p>
           </div>
         </div>
@@ -158,15 +159,18 @@ export default function OrderPage() {
 
       <main className="mx-auto max-w-5xl px-3 py-4 sm:px-4 sm:py-7">
         <div className="space-y-4 sm:space-y-5">
-          <section className="animate-fade-up rounded-2xl border border-amber-200 bg-amber-50/80 px-3.5 py-3.5 sm:px-4">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-amber-800">
+          <section className="rounded-xl border border-stone-200 bg-white px-3.5 py-3.5 shadow-sm sm:px-4">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <CalendarDays className="h-4 w-4" />
-              Semana del pedido
+              Período del pedido
             </p>
             <p className="mt-1 text-lg font-semibold text-slate-900">
-              {weekLabel(activeWeek)}
+              {weekLabel(form)}
             </p>
-            <p className="text-sm text-slate-600">{weekRangeText(activeWeek)}</p>
+            <p className="text-sm text-slate-600">{weekRangeText(form)}</p>
+            <p className="mt-1 text-sm font-medium text-slate-800">
+              {company.code} — {company.name}
+            </p>
           </section>
 
           <ClientForm
@@ -180,6 +184,7 @@ export default function OrderPage() {
             activeDay={activeDay}
             onChange={setActiveDay}
             details={details}
+            allowedDays={visibleDays}
           />
 
           <div className="pt-1">
@@ -194,7 +199,7 @@ export default function OrderPage() {
           <div className="grid gap-3.5 lg:grid-cols-2 lg:gap-4">
             <MenuCard
               slot="lunch"
-              dishIds={menu.lunch}
+              dishIds={dayMenu.lunch}
               dishesById={catalog.dishesById}
               quantities={details[activeDay]?.lunch}
               note={details[activeDay]?.notes?.lunch || ''}
@@ -209,7 +214,7 @@ export default function OrderPage() {
             />
             <MenuCard
               slot="dinner"
-              dishIds={menu.dinner}
+              dishIds={dayMenu.dinner}
               dishesById={catalog.dishesById}
               quantities={details[activeDay]?.dinner}
               note={details[activeDay]?.notes?.dinner || ''}
@@ -231,14 +236,14 @@ export default function OrderPage() {
       <footer className="safe-pb fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/80 bg-white/95 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center gap-2.5 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-slate-700">
               <ShoppingBag className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] text-slate-500">Total semana</p>
-              <p className="truncate text-base font-bold text-slate-900 sm:text-lg">
+              <p className="text-[11px] text-slate-500">Total</p>
+              <p className="truncate text-base font-semibold text-slate-900 sm:text-lg">
                 {total}{' '}
-                <span className="text-sm font-semibold text-slate-600">
+                <span className="text-sm font-medium text-slate-600">
                   viandas
                 </span>
               </p>
@@ -247,7 +252,7 @@ export default function OrderPage() {
           <button
             type="button"
             onClick={openConfirm}
-            className="inline-flex h-12 min-w-0 shrink-0 items-center justify-center rounded-xl bg-slate-900 px-3.5 text-sm font-semibold text-white transition active:scale-[0.98] hover:bg-slate-800 sm:px-6"
+            className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg bg-slate-800 px-3.5 text-sm font-semibold text-white hover:bg-slate-900 sm:px-6"
           >
             <span className="sm:hidden">Revisar pedido</span>
             <span className="hidden sm:inline">Revisar y Enviar Pedido</span>
@@ -260,7 +265,7 @@ export default function OrderPage() {
         onClose={() => setConfirmOpen(false)}
         client={client}
         company={company}
-        week={activeWeek}
+        week={form}
         details={details}
         dishesById={catalog.dishesById}
         onSubmit={handleSubmitOrder}

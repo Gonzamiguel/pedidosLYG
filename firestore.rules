@@ -20,7 +20,6 @@ service cloud.firestore {
       return isSignedIn() && (adminByUid() || adminByEmail());
     }
 
-    // Perfil de usuario — creá users/{UID} con { email, role: "admin" }
     match /users/{userId} {
       allow read: if isSignedIn()
         && (request.auth.uid == userId
@@ -39,18 +38,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    match /weekly_menus/{id} {
+    match /forms/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Semanas / períodos del pedido (desde-hasta)
-    match /weeks/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Empleados crean pedidos sin login; solo admin lee/consolida
     match /orders/{id} {
       allow create: if true;
       allow read, update, delete: if isAdmin();

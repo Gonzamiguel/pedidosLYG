@@ -2,25 +2,23 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   createCompany,
   createDish,
-  createWeek,
+  createForm,
+  createOrder,
   deleteCompany,
   deleteDish,
-  deleteWeek,
+  deleteForm,
   getCompanies,
   getDishes,
+  getFormById,
+  getForms,
   getOrders,
-  getWeeks,
-  getWeeklyMenus,
-  saveWeeklyMenu,
-  setWeekStatus,
-  createOrder,
+  updateForm,
 } from '../firebase/services'
 
 export function useCatalog() {
   const [companies, setCompanies] = useState([])
   const [dishes, setDishes] = useState([])
-  const [menus, setMenus] = useState([])
-  const [weeks, setWeeks] = useState([])
+  const [forms, setForms] = useState([])
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -29,20 +27,16 @@ export function useCatalog() {
     setLoading(true)
     setError('')
     try {
-      const [c, d, m, w] = await Promise.all([
+      const [c, d, f] = await Promise.all([
         getCompanies(),
         getDishes(),
-        getWeeklyMenus(),
-        getWeeks(),
+        getForms(),
       ])
       setCompanies(c)
       setDishes(d)
-      setMenus(m)
-      setWeeks(w)
-
+      setForms(f)
       try {
-        const o = await getOrders()
-        setOrders(o)
+        setOrders(await getOrders())
       } catch {
         setOrders([])
       }
@@ -62,48 +56,26 @@ export function useCatalog() {
     () => Object.fromEntries(dishes.map((d) => [d.id, d])),
     [dishes],
   )
-
   const companiesById = useMemo(
     () => Object.fromEntries(companies.map((c) => [c.id, c])),
     [companies],
   )
-
-  const weeksById = useMemo(
-    () => Object.fromEntries(weeks.map((w) => [w.id, w])),
-    [weeks],
-  )
-
-  const getMenuFor = useCallback(
-    (companyId, dayId) =>
-      menus.find((m) => m.companyId === companyId && m.dayId === dayId) || {
-        companyId,
-        dayId,
-        lunch: [],
-        dinner: [],
-      },
-    [menus],
-  )
-
-  const getActiveWeek = useCallback(
-    (companyId) =>
-      weeks.find((w) => w.companyId === companyId && w.status === 'active') ||
-      null,
-    [weeks],
+  const formsById = useMemo(
+    () => Object.fromEntries(forms.map((f) => [f.id, f])),
+    [forms],
   )
 
   return {
     companies,
     dishes,
-    menus,
-    weeks,
+    forms,
     orders,
     dishesById,
     companiesById,
-    weeksById,
-    getMenuFor,
-    getActiveWeek,
+    formsById,
     loading,
     error,
+    getFormById,
     async addCompany(data) {
       const created = await createCompany(data)
       await refresh()
@@ -122,22 +94,18 @@ export function useCatalog() {
       await deleteDish(id)
       await refresh()
     },
-    async updateMenu(data) {
-      const saved = await saveWeeklyMenu(data)
-      await refresh()
-      return saved
-    },
-    async addWeek(data) {
-      const created = await createWeek(data)
+    async addForm(data) {
+      const created = await createForm(data)
       await refresh()
       return created
     },
-    async changeWeekStatus(weekId, status) {
-      await setWeekStatus(weekId, status)
+    async editForm(formId, patch) {
+      const saved = await updateForm(formId, patch)
       await refresh()
+      return saved
     },
-    async removeWeek(weekId) {
-      await deleteWeek(weekId)
+    async removeForm(formId) {
+      await deleteForm(formId)
       await refresh()
     },
     async submitOrder(data) {

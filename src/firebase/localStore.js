@@ -1,11 +1,10 @@
-const STORAGE_KEY = 'pedidos_lg_local_v3'
+const STORAGE_KEY = 'pedidos_lg_local_v4'
 
 function defaultState() {
   return {
     companies: [],
     dishes: [],
-    weekly_menus: [],
-    weeks: [],
+    forms: [],
     orders: [],
   }
 }
@@ -26,12 +25,6 @@ export function loadLocalState() {
 
 export function saveLocalState(state) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
-
-export function resetLocalState() {
-  const state = defaultState()
-  saveLocalState(state)
-  return state
 }
 
 export function updateLocalCollection(collection, updater) {

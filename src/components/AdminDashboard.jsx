@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react'
 import {
   ArrowLeft,
-  Building2,
-  CalendarDays,
-  CalendarRange,
   ClipboardList,
-  History,
+  FileText,
   Loader2,
   Lock,
   LogOut,
-  Utensils,
+  Settings,
 } from 'lucide-react'
 import { ADMIN_DEMO_KEY, isFirebaseConfigured } from '../firebase/config'
 import {
@@ -19,57 +16,36 @@ import {
 } from '../firebase/auth'
 import { APP_NAME } from '../data/brand'
 import { getDataMode } from '../firebase/services'
-import DishesTab from './admin/DishesTab'
-import MenuConfigTab from './admin/MenuConfigTab'
-import CompaniesTab from './admin/CompaniesTab'
-import WeeksTab from './admin/WeeksTab'
-import ConsolidatedTab from './admin/ConsolidatedTab'
-import HistoryTab from './admin/HistoryTab'
+import ConsolidatedModule from './admin/ConsolidatedModule'
+import FormsModule from './admin/FormsModule'
+import ConfigModule from './admin/ConfigModule'
 
 const MODULES = [
   {
-    id: 'companies',
-    label: 'Empresas',
-    description: 'Links y altas',
-    icon: Building2,
-  },
-  {
-    id: 'weeks',
-    label: 'Semanas',
-    description: 'Período del pedido',
-    icon: CalendarDays,
-  },
-  {
-    id: 'dishes',
-    label: 'Platos',
-    description: 'Catálogo central',
-    icon: Utensils,
-  },
-  {
-    id: 'menus',
-    label: 'Configurar menú',
-    description: 'Por empresa y día',
-    icon: CalendarRange,
-  },
-  {
-    id: 'report',
-    label: 'Consolidado cocina',
-    description: 'Pedidos de la semana',
+    id: 'consolidated',
+    label: 'Consolidado de pedidos',
+    description: 'Quién pidió qué, con filtros',
     icon: ClipboardList,
   },
   {
-    id: 'history',
-    label: 'Historial',
-    description: 'Semanas y pedidos',
-    icon: History,
+    id: 'forms',
+    label: 'Formularios',
+    description: 'Generar links por empresa y fechas',
+    icon: FileText,
+  },
+  {
+    id: 'config',
+    label: 'Configuración',
+    description: 'Empresas y platos',
+    icon: Settings,
   },
 ]
 
 const inputClass =
-  'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+  'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200'
 
 export default function AdminDashboard({ onBack, catalog }) {
-  const [module, setModule] = useState('weeks')
+  const [module, setModule] = useState('forms')
   const [admin, setAdmin] = useState(null)
   const [demoAuthed, setDemoAuthed] = useState(false)
   const [checking, setChecking] = useState(isFirebaseConfigured)
@@ -87,13 +63,11 @@ export default function AdminDashboard({ onBack, catalog }) {
       setChecking(false)
       return undefined
     }
-
     setChecking(true)
-    const unsub = subscribeAdminAuth((profile) => {
+    return subscribeAdminAuth((profile) => {
       setAdmin(profile)
       setChecking(false)
     })
-    return unsub
   }, [])
 
   const loginFirebase = async (e) => {
@@ -101,16 +75,11 @@ export default function AdminDashboard({ onBack, catalog }) {
     setBusy(true)
     setError('')
     try {
-      const profile = await loginAdmin(email, password)
-      setAdmin(profile)
+      setAdmin(await loginAdmin(email, password))
     } catch (err) {
       const code = err?.code || ''
       if (code === 'auth/invalid-credential' || code === 'auth/wrong-password') {
         setError('Email o contraseña incorrectos')
-      } else if (code === 'auth/user-not-found') {
-        setError('Usuario no encontrado en Authentication')
-      } else if (code === 'auth/too-many-requests') {
-        setError('Demasiados intentos. Probá más tarde.')
       } else {
         setError(err.message || 'Error de autenticación')
       }
@@ -140,7 +109,7 @@ export default function AdminDashboard({ onBack, catalog }) {
   if (checking) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-stone-100 text-slate-600">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin text-amber-600" />
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
         Verificando sesión…
       </div>
     )
@@ -148,19 +117,19 @@ export default function AdminDashboard({ onBack, catalog }) {
 
   if (!authed) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-stone-100 via-white to-amber-50/40 px-4">
-        <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
+      <div className="flex min-h-dvh items-center justify-center bg-stone-100 px-4">
+        <div className="w-full max-w-md rounded-xl border border-stone-200 bg-white p-8 shadow-sm">
           <button
             type="button"
             onClick={onBack}
             className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver al pedido
+            Volver
           </button>
 
           <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-stone-100 text-slate-700">
               <Lock className="h-6 w-6" />
             </div>
             <div>
@@ -173,30 +142,22 @@ export default function AdminDashboard({ onBack, catalog }) {
 
           {isFirebaseConfigured ? (
             <form onSubmit={loginFirebase} className="space-y-4">
-              <p className="text-sm text-slate-600">
-                Ingresá con tu usuario de Firebase que tenga{' '}
-                <code className="rounded bg-amber-50 px-1 text-amber-800">
-                  role: &quot;admin&quot;
-                </code>{' '}
-                en la colección <code className="rounded bg-stone-100 px-1">users</code>.
-              </p>
               <label className="block">
                 <span className="text-sm font-medium text-slate-700">Email</span>
                 <input
                   type="email"
-                  autoComplete="username"
                   className={inputClass}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@empresa.com"
                   required
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-medium text-slate-700">Contraseña</span>
+                <span className="text-sm font-medium text-slate-700">
+                  Contraseña
+                </span>
                 <input
                   type="password"
-                  autoComplete="current-password"
                   className={inputClass}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -211,7 +172,7 @@ export default function AdminDashboard({ onBack, catalog }) {
               <button
                 type="submit"
                 disabled={busy}
-                className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-lg bg-amber-500 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
+                className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-lg bg-slate-800 text-sm font-semibold text-white hover:bg-slate-900 disabled:opacity-50"
               >
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                 Iniciar sesión
@@ -219,14 +180,10 @@ export default function AdminDashboard({ onBack, catalog }) {
             </form>
           ) : (
             <form onSubmit={loginDemo} className="space-y-4">
-              <p className="text-sm text-slate-600">
-                Firebase no configurado. Clave demo:{' '}
-                <code className="rounded bg-amber-50 px-1 text-amber-800">
-                  viandapp-master
-                </code>
-              </p>
               <label className="block">
-                <span className="text-sm font-medium text-slate-700">Clave admin</span>
+                <span className="text-sm font-medium text-slate-700">
+                  Clave admin
+                </span>
                 <input
                   type="password"
                   className={inputClass}
@@ -242,7 +199,7 @@ export default function AdminDashboard({ onBack, catalog }) {
               )}
               <button
                 type="submit"
-                className="w-full min-h-11 rounded-lg bg-amber-500 text-sm font-semibold text-white hover:bg-amber-600"
+                className="w-full min-h-11 rounded-lg bg-slate-800 text-sm font-semibold text-white hover:bg-slate-900"
               >
                 Entrar
               </button>
@@ -255,8 +212,7 @@ export default function AdminDashboard({ onBack, catalog }) {
 
   return (
     <div className="flex min-h-dvh bg-stone-100 text-slate-800">
-      {/* Sidebar desktop */}
-      <aside className="sticky top-0 flex h-dvh w-64 shrink-0 flex-col border-r border-stone-200 bg-white">
+      <aside className="sticky top-0 flex h-dvh w-72 shrink-0 flex-col border-r border-stone-200 bg-white">
         <div className="border-b border-stone-200 px-5 py-5">
           <p className="text-[15px] font-semibold leading-snug tracking-tight text-slate-900">
             {APP_NAME}
@@ -274,20 +230,26 @@ export default function AdminDashboard({ onBack, catalog }) {
                 key={id}
                 type="button"
                 onClick={() => setModule(id)}
-                className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition ${
+                className={`flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition ${
                   active
-                    ? 'bg-amber-50 text-amber-900 ring-1 ring-amber-200'
+                    ? 'bg-slate-800 text-white'
                     : 'text-slate-600 hover:bg-stone-50 hover:text-slate-900'
                 }`}
               >
                 <Icon
                   className={`mt-0.5 h-5 w-5 shrink-0 ${
-                    active ? 'text-amber-600' : 'text-slate-400'
+                    active ? 'text-amber-300' : 'text-slate-400'
                   }`}
                 />
                 <span>
                   <span className="block text-sm font-semibold">{label}</span>
-                  <span className="block text-xs text-slate-500">{description}</span>
+                  <span
+                    className={`block text-xs ${
+                      active ? 'text-slate-300' : 'text-slate-500'
+                    }`}
+                  >
+                    {description}
+                  </span>
                 </span>
               </button>
             )
@@ -298,7 +260,6 @@ export default function AdminDashboard({ onBack, catalog }) {
           <p className="truncate px-1 text-xs text-slate-500">
             {admin?.email || `Modo ${getDataMode()}`}
           </p>
-
           <button
             type="button"
             onClick={onBack}
@@ -318,78 +279,30 @@ export default function AdminDashboard({ onBack, catalog }) {
         </div>
       </aside>
 
-      {/* Main workspace */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-10 border-b border-stone-200 bg-white/95 px-8 py-5 backdrop-blur">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">
-                Módulo
-              </p>
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-                {current.label}
-              </h1>
-              <p className="mt-0.5 text-sm text-slate-500">{current.description}</p>
-            </div>
-            <div className="rounded-lg bg-stone-50 px-3 py-2 text-right text-xs text-slate-500 ring-1 ring-stone-200">
-              <p className="font-medium text-slate-700">Escritorio</p>
-              <p>{getDataMode() === 'firebase' ? 'Firebase conectado' : 'Demo local'}</p>
-            </div>
-          </div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Módulo
+          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+            {current.label}
+          </h1>
+          <p className="mt-0.5 text-sm text-slate-500">{current.description}</p>
         </header>
 
         <main className="flex-1 overflow-y-auto px-8 py-6">
           <div className="mx-auto max-w-6xl">
-            {module === 'companies' && (
-              <CompaniesTab
-                companies={catalog.companies}
-                onCreate={catalog.addCompany}
-                onDelete={catalog.removeCompany}
-              />
-            )}
-            {module === 'weeks' && (
-              <WeeksTab
-                companies={catalog.companies}
-                weeks={catalog.weeks}
-                onCreate={catalog.addWeek}
-                onSetStatus={catalog.changeWeekStatus}
-                onDelete={catalog.removeWeek}
-              />
-            )}
-            {module === 'dishes' && (
-              <DishesTab
-                dishes={catalog.dishes}
-                onCreate={catalog.addDish}
-                onDelete={catalog.removeDish}
-              />
-            )}
-            {module === 'menus' && (
-              <MenuConfigTab
-                companies={catalog.companies}
-                dishes={catalog.dishes}
-                getMenuFor={catalog.getMenuFor}
-                onSave={catalog.updateMenu}
-              />
-            )}
-            {module === 'report' && (
-              <ConsolidatedTab
+            {module === 'consolidated' && (
+              <ConsolidatedModule
                 orders={catalog.orders}
-                weeks={catalog.weeks}
-                companies={catalog.companies}
-                dishesById={catalog.dishesById}
-                companiesById={catalog.companiesById}
-              />
-            )}
-            {module === 'history' && (
-              <HistoryTab
-                orders={catalog.orders}
-                weeks={catalog.weeks}
                 companies={catalog.companies}
                 companiesById={catalog.companiesById}
-                weeksById={catalog.weeksById}
+                formsById={catalog.formsById}
                 dishesById={catalog.dishesById}
               />
             )}
+            {module === 'forms' && <FormsModule catalog={catalog} />}
+            {module === 'config' && <ConfigModule catalog={catalog} />}
           </div>
         </main>
       </div>

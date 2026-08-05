@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   orderBy,
   query,
@@ -12,6 +13,7 @@ import {
 } from 'firebase/firestore'
 import { db, isFirebaseConfigured } from './config'
 import { loadLocalState, updateLocalCollection } from './localStore'
+import { normalizeFormDays } from '../data/formHelpers'
 
 function toIso(value) {
   if (!value) return new Date().toISOString()
@@ -33,9 +35,7 @@ function normalizeDoc(id, data) {
 /* ───────────── Companies ───────────── */
 
 export async function getCompanies() {
-  if (!isFirebaseConfigured) {
-    return loadLocalState().companies
-  }
+  if (!isFirebaseConfigured) return loadLocalState().companies
   const snap = await getDocs(query(collection(db, 'companies'), orderBy('name')))
   return snap.docs.map((d) => normalizeDoc(d.id, d.data()))
 }
@@ -47,10 +47,7 @@ export async function createCompany({ code, name }) {
     name: name.trim(),
     createdAt: new Date().toISOString(),
   }
-
-  if (!id) {
-    throw new Error('El código de empresa no es válido')
-  }
+  if (!id) throw new Error('El código de empresa no es válido')
 
   if (!isFirebaseConfigured) {
     const list = updateLocalCollection('companies', (items) => {
@@ -74,36 +71,25 @@ export async function deleteCompany(companyId) {
     updateLocalCollection('companies', (items) =>
       items.filter((c) => c.id !== companyId),
     )
-    updateLocalCollection('weekly_menus', (items) =>
-      items.filter((m) => m.companyId !== companyId),
-    )
-    updateLocalCollection('weeks', (items) =>
-      items.filter((w) => w.companyId !== companyId),
+    updateLocalCollection('forms', (items) =>
+      items.filter((f) => f.companyId !== companyId),
     )
     return
   }
 
   await deleteDoc(doc(db, 'companies', companyId))
-  const [menus, weeks] = await Promise.all([
-    getDocs(collection(db, 'weekly_menus')),
-    getDocs(collection(db, 'weeks')),
-  ])
-  await Promise.all([
-    ...menus.docs
+  const forms = await getDocs(collection(db, 'forms'))
+  await Promise.all(
+    forms.docs
       .filter((d) => d.data().companyId === companyId)
       .map((d) => deleteDoc(d.ref)),
-    ...weeks.docs
-      .filter((d) => d.data().companyId === companyId)
-      .map((d) => deleteDoc(d.ref)),
-  ])
+  )
 }
 
 /* ───────────── Dishes ───────────── */
 
 export async function getDishes() {
-  if (!isFirebaseConfigured) {
-    return loadLocalState().dishes
-  }
+  if (!isFirebaseConfigured) return loadLocalState().dishes
   const snap = await getDocs(query(collection(db, 'dishes'), orderBy('name')))
   return snap.docs.map((d) => normalizeDoc(d.id, d.data()))
 }
@@ -137,177 +123,98 @@ export async function deleteDish(dishId) {
   await deleteDoc(doc(db, 'dishes', dishId))
 }
 
-/* ───────────── Weekly Menus ───────────── */
+/* ───────────── Forms (empresa + fechas + menús) ───────────── */
 
-export async function getWeeklyMenus(companyId) {
+export async function getForms() {
   if (!isFirebaseConfigured) {
-    const menus = loadLocalState().weekly_menus
-    return companyId ? menus.filter((m) => m.companyId === companyId) : menus
+    const forms = loadLocalState().forms || []
+    return [...forms]
+      .map((f) => ({ ...f, days: normalizeFormDays(f.days) }))
+      .sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))
   }
 
-  const snap = await getDocs(collection(db, 'weekly_menus'))
-  const menus = snap.docs.map((d) => normalizeDoc(d.id, d.data()))
-  return companyId ? menus.filter((m) => m.companyId === companyId) : menus
-}
-
-export async function saveWeeklyMenu({ companyId, dayId, lunch, dinner }) {
-  const id = `${companyId}_${dayId}`
-  const payload = {
-    companyId,
-    dayId,
-    lunch: lunch.slice(0, 4),
-    dinner: dinner.slice(0, 4),
-    createdAt: new Date().toISOString(),
-  }
-
-  if (!isFirebaseConfigured) {
-    updateLocalCollection('weekly_menus', (items) => {
-      const rest = items.filter((m) => m.id !== id)
-      return [...rest, { id, ...payload }]
+  const snap = await getDocs(collection(db, 'forms'))
+  return snap.docs
+    .map((d) => {
+      const data = normalizeDoc(d.id, d.data())
+      return { ...data, days: normalizeFormDays(data.days) }
     })
-    return { id, ...payload }
-  }
-
-  await setDoc(
-    doc(db, 'weekly_menus', id),
-    { ...payload, createdAt: serverTimestamp() },
-    { merge: true },
-  )
-  return { id, ...payload }
+    .sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))
 }
 
-/* ───────────── Weeks (período del pedido) ───────────── */
+export async function getFormById(formId) {
+  if (!formId) return null
 
-export async function getWeeks(companyId) {
   if (!isFirebaseConfigured) {
-    const weeks = loadLocalState().weeks || []
-    const list = companyId
-      ? weeks.filter((w) => w.companyId === companyId)
-      : weeks
-    return [...list].sort((a, b) =>
-      (b.startDate || '').localeCompare(a.startDate || ''),
-    )
+    const form = (loadLocalState().forms || []).find((f) => f.id === formId)
+    return form ? { ...form, days: normalizeFormDays(form.days) } : null
   }
 
-  const snap = await getDocs(collection(db, 'weeks'))
-  const weeks = snap.docs.map((d) => normalizeDoc(d.id, d.data()))
-  const list = companyId
-    ? weeks.filter((w) => w.companyId === companyId)
-    : weeks
-  return list.sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))
+  const snap = await getDoc(doc(db, 'forms', formId))
+  if (!snap.exists()) return null
+  const data = normalizeDoc(snap.id, snap.data())
+  return { ...data, days: normalizeFormDays(data.days) }
 }
 
-export async function createWeek({
+export async function createForm({
   companyId,
   startDate,
   endDate,
-  label = '',
-  activate = true,
+  days,
+  status = 'open',
 }) {
   const payload = {
     companyId,
     startDate,
     endDate,
-    label: (label || '').trim(),
-    status: activate ? 'active' : 'closed',
+    days: normalizeFormDays(days),
+    status,
     createdAt: new Date().toISOString(),
   }
 
   if (!isFirebaseConfigured) {
-    if (activate) {
-      updateLocalCollection('weeks', (items) =>
-        items.map((w) =>
-          w.companyId === companyId && w.status === 'active'
-            ? { ...w, status: 'closed' }
-            : w,
-        ),
-      )
-    }
-    const id = `week_${Date.now()}`
-    updateLocalCollection('weeks', (items) => [{ id, ...payload }, ...items])
+    const id = `form_${Date.now()}`
+    updateLocalCollection('forms', (items) => [{ id, ...payload }, ...items])
     return { id, ...payload }
   }
 
-  if (activate) {
-    const snap = await getDocs(collection(db, 'weeks'))
-    await Promise.all(
-      snap.docs
-        .filter(
-          (d) =>
-            d.data().companyId === companyId && d.data().status === 'active',
-        )
-        .map((d) => setDoc(d.ref, { status: 'closed' }, { merge: true })),
-    )
-  }
-
-  const ref = await addDoc(collection(db, 'weeks'), {
+  const ref = await addDoc(collection(db, 'forms'), {
     ...payload,
     createdAt: serverTimestamp(),
   })
   return { id: ref.id, ...payload }
 }
 
-export async function setWeekStatus(weekId, status) {
-  if (!['active', 'closed'].includes(status)) {
-    throw new Error('Estado de semana inválido')
-  }
+export async function updateForm(formId, patch) {
+  const clean = { ...patch }
+  if (clean.days) clean.days = normalizeFormDays(clean.days)
 
   if (!isFirebaseConfigured) {
-    let companyId = ''
-    updateLocalCollection('weeks', (items) => {
-      const target = items.find((w) => w.id === weekId)
-      companyId = target?.companyId || ''
-      return items.map((w) => {
-        if (w.id === weekId) return { ...w, status }
-        if (
-          status === 'active' &&
-          companyId &&
-          w.companyId === companyId &&
-          w.status === 'active'
-        ) {
-          return { ...w, status: 'closed' }
-        }
-        return w
-      })
-    })
-    return
-  }
-
-  const all = await getDocs(collection(db, 'weeks'))
-  const target = all.docs.find((d) => d.id === weekId)
-  if (!target) throw new Error('Semana no encontrada')
-  const companyId = target.data().companyId
-
-  if (status === 'active') {
-    await Promise.all(
-      all.docs
-        .filter(
-          (d) =>
-            d.data().companyId === companyId && d.data().status === 'active',
-        )
-        .map((d) => setDoc(d.ref, { status: 'closed' }, { merge: true })),
+    updateLocalCollection('forms', (items) =>
+      items.map((f) => (f.id === formId ? { ...f, ...clean } : f)),
     )
+    const form = (loadLocalState().forms || []).find((f) => f.id === formId)
+    return form ? { ...form, days: normalizeFormDays(form.days) } : null
   }
 
-  await setDoc(doc(db, 'weeks', weekId), { status }, { merge: true })
+  await setDoc(doc(db, 'forms', formId), clean, { merge: true })
+  return getFormById(formId)
 }
 
-export async function deleteWeek(weekId) {
+export async function deleteForm(formId) {
   if (!isFirebaseConfigured) {
-    updateLocalCollection('weeks', (items) =>
-      items.filter((w) => w.id !== weekId),
+    updateLocalCollection('forms', (items) =>
+      items.filter((f) => f.id !== formId),
     )
     return
   }
-  await deleteDoc(doc(db, 'weeks', weekId))
+  await deleteDoc(doc(db, 'forms', formId))
 }
 
 /* ───────────── Orders ───────────── */
 
 export async function getOrders() {
-  if (!isFirebaseConfigured) {
-    return loadLocalState().orders
-  }
+  if (!isFirebaseConfigured) return loadLocalState().orders
   const snap = await getDocs(
     query(collection(db, 'orders'), orderBy('createdAt', 'desc')),
   )
@@ -317,7 +224,7 @@ export async function getOrders() {
 export async function createOrder(order) {
   const payload = {
     companyId: order.companyId,
-    weekId: order.weekId || '',
+    formId: order.formId || '',
     weekStart: order.weekStart || '',
     weekEnd: order.weekEnd || '',
     userName: order.userName.trim(),
