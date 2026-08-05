@@ -4,7 +4,6 @@ import {
   Building2,
   CalendarRange,
   ClipboardList,
-  Database,
   Loader2,
   Lock,
   LogOut,
@@ -62,7 +61,6 @@ export default function AdminDashboard({ onBack, catalog }) {
   const [demoKey, setDemoKey] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [seedMsg, setSeedMsg] = useState('')
 
   const authed = Boolean(admin) || demoAuthed
   const current = MODULES.find((m) => m.id === module) || MODULES[0]
@@ -120,16 +118,6 @@ export default function AdminDashboard({ onBack, catalog }) {
     setDemoAuthed(false)
     setPassword('')
     setDemoKey('')
-  }
-
-  const handleSeed = async () => {
-    setSeedMsg('')
-    try {
-      await catalog.seed()
-      setSeedMsg('Datos semilla cargados correctamente')
-    } catch (err) {
-      setSeedMsg(err.message || 'Error al cargar seed')
-    }
   }
 
   if (checking) {
@@ -290,23 +278,6 @@ export default function AdminDashboard({ onBack, catalog }) {
         </nav>
 
         <div className="space-y-2 border-t border-stone-200 p-3">
-          <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5">
-            <div className="flex items-center gap-2">
-              <Database className="h-4 w-4 text-amber-600" />
-              <p className="text-xs font-medium text-slate-700">Datos semilla</p>
-            </div>
-            <button
-              type="button"
-              onClick={handleSeed}
-              className="mt-2 w-full min-h-9 rounded-lg bg-white text-xs font-semibold text-amber-800 ring-1 ring-stone-200 hover:bg-amber-50"
-            >
-              Cargar Seed
-            </button>
-            {seedMsg && (
-              <p className="mt-1.5 text-[11px] text-emerald-700">{seedMsg}</p>
-            )}
-          </div>
-
           <p className="truncate px-1 text-xs text-slate-500">
             {admin?.email || `Modo ${getDataMode()}`}
           </p>
@@ -371,6 +342,7 @@ export default function AdminDashboard({ onBack, catalog }) {
               <CompaniesTab
                 companies={catalog.companies}
                 onCreate={catalog.addCompany}
+                onDelete={catalog.removeCompany}
               />
             )}
             {module === 'report' && (

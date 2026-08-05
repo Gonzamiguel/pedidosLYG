@@ -2,14 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   createCompany,
   createDish,
+  deleteCompany,
   deleteDish,
-  ensureLocalSeed,
   getCompanies,
   getDishes,
   getOrders,
   getWeeklyMenus,
   saveWeeklyMenu,
-  seedDatabase,
   createOrder,
 } from '../firebase/services'
 
@@ -25,7 +24,6 @@ export function useCatalog() {
     setLoading(true)
     setError('')
     try {
-      await ensureLocalSeed()
       const [c, d, m] = await Promise.all([
         getCompanies(),
         getDishes(),
@@ -35,7 +33,6 @@ export function useCatalog() {
       setDishes(d)
       setMenus(m)
 
-      // Los pedidos solo los lee el admin (reglas Firestore)
       try {
         const o = await getOrders()
         setOrders(o)
@@ -90,6 +87,10 @@ export function useCatalog() {
       await refresh()
       return created
     },
+    async removeCompany(id) {
+      await deleteCompany(id)
+      await refresh()
+    },
     async addDish(data) {
       const created = await createDish(data)
       await refresh()
@@ -106,17 +107,12 @@ export function useCatalog() {
     },
     async submitOrder(data) {
       const created = await createOrder(data)
-      // No fallar si no se pueden releer pedidos (empleado sin auth)
       try {
         await refresh()
       } catch {
         /* ignore */
       }
       return created
-    },
-    async seed() {
-      await seedDatabase()
-      await refresh()
     },
     refresh,
   }

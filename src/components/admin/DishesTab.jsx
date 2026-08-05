@@ -111,7 +111,7 @@ export default function DishesTab({ dishes, onCreate, onDelete }) {
 
         {!dishes.length ? (
           <p className="rounded-xl border border-dashed border-stone-300 px-4 py-10 text-center text-sm text-slate-500">
-            No hay platos. Creá uno o cargá el Seed.
+            No hay platos. Creá el primero desde el formulario.
           </p>
         ) : (
           <ul className="divide-y divide-stone-100">

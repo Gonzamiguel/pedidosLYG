@@ -92,7 +92,7 @@ export default function App() {
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-8 text-center text-sm text-rose-700">
             {catalog.error}
             <p className="mt-2 text-xs text-rose-500">
-              Si es la primera vez, ingresá como Admin y tocá Seed.
+              Si es la primera vez, ingresá como Admin y cargá empresas y menús.
             </p>
           </div>
         ) : (

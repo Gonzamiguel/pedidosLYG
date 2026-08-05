@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Building2, Plus } from 'lucide-react'
+import { Building2, Plus, Trash2 } from 'lucide-react'
 
 const field =
   'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
 
-export default function CompaniesTab({ companies, onCreate }) {
+export default function CompaniesTab({ companies, onCreate, onDelete }) {
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
@@ -59,7 +59,7 @@ export default function CompaniesTab({ companies, onCreate }) {
               className={field}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="LYG Servicios Industriales"
+              placeholder="Nombre de la empresa"
               required
             />
           </label>
@@ -96,22 +96,46 @@ export default function CompaniesTab({ companies, onCreate }) {
           </span>
         </div>
 
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {companies.map((c) => (
-            <li
-              key={c.id}
-              className="flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3.5"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                <Building2 className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-slate-900">{c.code}</p>
-                <p className="truncate text-sm text-slate-500">{c.name}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {!companies.length ? (
+          <p className="rounded-xl border border-dashed border-stone-300 px-4 py-10 text-center text-sm text-slate-500">
+            Todavía no hay empresas. Creá la primera para empezar.
+          </p>
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {companies.map((c) => (
+              <li
+                key={c.id}
+                className="flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3.5"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-slate-900">{c.code}</p>
+                  <p className="truncate text-sm text-slate-500">{c.name}</p>
+                </div>
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        confirm(
+                          `¿Eliminar ${c.code}? También se borran sus menús.`,
+                        )
+                      ) {
+                        onDelete(c.id)
+                      }
+                    }}
+                    className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"
+                    aria-label={`Eliminar ${c.code}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   )

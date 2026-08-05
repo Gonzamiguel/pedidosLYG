@@ -35,7 +35,7 @@ Credenciales en `.env` (no se versiona). Ver `.env.example`.
 ```
 
 3. En la app → **Admin** → iniciar sesión
-4. Tocá **Cargar Seed** para empresas LYG/GYL, platos y menús
+4. Creá empresas, platos y menús desde el panel (arranca vacío)
 
 Publicá las reglas de `firestore.rules` en Firebase.
 

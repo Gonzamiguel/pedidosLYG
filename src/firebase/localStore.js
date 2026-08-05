@@ -1,18 +1,10 @@
-import {
-  SEED_COMPANIES,
-  SEED_DISHES,
-  SEED_MENUS,
-  withTimestamps,
-} from '../data/seed'
-
-const STORAGE_KEY = 'viandapp_local_v1'
+const STORAGE_KEY = 'pedidos_lg_local_v2'
 
 function defaultState() {
-  const now = Date.now()
   return {
-    companies: withTimestamps(SEED_COMPANIES, now),
-    dishes: withTimestamps(SEED_DISHES, now),
-    weekly_menus: withTimestamps(SEED_MENUS, now),
+    companies: [],
+    dishes: [],
+    weekly_menus: [],
     orders: [],
   }
 }

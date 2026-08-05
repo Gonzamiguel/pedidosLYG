@@ -9,21 +9,9 @@ import {
   serverTimestamp,
   setDoc,
   Timestamp,
-  writeBatch,
 } from 'firebase/firestore'
 import { db, isFirebaseConfigured } from './config'
-import {
-  loadLocalState,
-  resetLocalState,
-  saveLocalState,
-  updateLocalCollection,
-} from './localStore'
-import {
-  SEED_COMPANIES,
-  SEED_DISHES,
-  SEED_MENUS,
-  withTimestamps,
-} from '../data/seed'
+import { loadLocalState, updateLocalCollection } from './localStore'
 
 function toIso(value) {
   if (!value) return new Date().toISOString()
@@ -79,6 +67,26 @@ export async function createCompany({ code, name }) {
     createdAt: serverTimestamp(),
   })
   return { id, ...payload }
+}
+
+export async function deleteCompany(companyId) {
+  if (!isFirebaseConfigured) {
+    updateLocalCollection('companies', (items) =>
+      items.filter((c) => c.id !== companyId),
+    )
+    updateLocalCollection('weekly_menus', (items) =>
+      items.filter((m) => m.companyId !== companyId),
+    )
+    return
+  }
+
+  await deleteDoc(doc(db, 'companies', companyId))
+  const menus = await getDocs(collection(db, 'weekly_menus'))
+  await Promise.all(
+    menus.docs
+      .filter((d) => d.data().companyId === companyId)
+      .map((d) => deleteDoc(d.ref)),
+  )
 }
 
 /* ───────────── Dishes ───────────── */
@@ -195,56 +203,6 @@ export async function createOrder(order) {
   return { id: ref.id, ...payload }
 }
 
-/* ───────────── Seed ───────────── */
-
-export async function seedDatabase() {
-  if (!isFirebaseConfigured) {
-    return resetLocalState()
-  }
-
-  const batch = writeBatch(db)
-  const now = serverTimestamp()
-
-  withTimestamps(SEED_COMPANIES).forEach((c) => {
-    batch.set(doc(db, 'companies', c.id), {
-      code: c.code,
-      name: c.name,
-      createdAt: now,
-    })
-  })
-
-  withTimestamps(SEED_DISHES).forEach((d) => {
-    batch.set(doc(db, 'dishes', d.id), {
-      name: d.name,
-      tag: d.tag,
-      desc: d.desc,
-      createdAt: now,
-    })
-  })
-
-  withTimestamps(SEED_MENUS).forEach((m) => {
-    batch.set(doc(db, 'weekly_menus', m.id), {
-      companyId: m.companyId,
-      dayId: m.dayId,
-      lunch: m.lunch,
-      dinner: m.dinner,
-      createdAt: now,
-    })
-  })
-
-  await batch.commit()
-  return true
-}
-
 export function getDataMode() {
   return isFirebaseConfigured ? 'firebase' : 'local'
-}
-
-export async function ensureLocalSeed() {
-  if (!isFirebaseConfigured) {
-    const state = loadLocalState()
-    if (!state.companies?.length) {
-      saveLocalState(resetLocalState())
-    }
-  }
 }
