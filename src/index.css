@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --color-lunch-50: #fffbeb;
+  --color-lunch-100: #fef3c7;
+  --color-lunch-200: #fde68a;
+  --color-lunch-600: #d97706;
+  --color-lunch-700: #b45309;
+  --color-lunch-800: #92400e;
+  --color-dinner-50: #eef2ff;
+  --color-dinner-100: #e0e7ff;
+  --color-dinner-200: #c7d2fe;
+  --color-dinner-600: #4f46e5;
+  --color-dinner-700: #4338ca;
+  --color-dinner-800: #3730a3;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply m-0 min-h-dvh bg-stone-100 font-sans text-slate-800 antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 10% -10%, rgba(251, 191, 36, 0.18), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 0%, rgba(99, 102, 241, 0.12), transparent),
+      linear-gradient(180deg, #fafaf9 0%, #f5f5f4 100%);
+  }
+
+  #root {
+    @apply min-h-dvh;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  /* Ocultar flechas nativas en inputs number */
+  .hide-arrows::-webkit-outer-spin-button,
+  .hide-arrows::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .hide-arrows[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  .safe-pb {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out both;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
