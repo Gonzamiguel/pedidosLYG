@@ -32,9 +32,12 @@ export function useCatalog() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const refresh = useCallback(async () => {
-    setLoading(true)
-    setError('')
+  const refresh = useCallback(async ({ silent = false } = {}) => {
+    // silent: no mostrar pantalla de carga (evita desmontar modales/UI)
+    if (!silent) {
+      setLoading(true)
+      setError('')
+    }
     try {
       // Cada colección se carga por separado: si falla "forms",
       // igual se ven empresas y platos.
@@ -50,9 +53,9 @@ export function useCatalog() {
       setOrders(o)
     } catch (err) {
       console.error(err)
-      setError(err.message || 'Error al cargar datos')
+      if (!silent) setError(err.message || 'Error al cargar datos')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [])
 
@@ -141,11 +144,10 @@ export function useCatalog() {
     },
     async submitOrder(data) {
       const created = await createOrder(data)
-      try {
-        await refresh()
-      } catch {
-        /* ignore */
-      }
+      setOrders((prev) => [created, ...prev.filter((o) => o.id !== created.id)])
+      // Refresh en segundo plano sin pantalla de carga, para no
+      // desmontar el modal de confirmación / toast de éxito.
+      refresh({ silent: true }).catch(() => {})
       return created
     },
     refresh,

@@ -103,7 +103,9 @@ export default function OrderPage() {
     })
   }
 
-  if (catalog.loading || formLoading) {
+  // Solo pantalla de carga en el primer fetch; no bloquear si ya hay datos
+  // (un refresh no debe desmontar el modal de revisión/éxito).
+  if ((catalog.loading && !form) || formLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center text-slate-500">
         Cargando formulario…
