@@ -10,8 +10,8 @@ export default function HomePage() {
           {APP_NAME}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
-          Cada empresa tiene su propio link de pedidos. Pedile al administrador
-          el enlace de tu empresa.
+          Pedile al administrador el link del formulario de pedidos de tu
+          empresa.
         </p>
 
         <Link
