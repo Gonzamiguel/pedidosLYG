@@ -288,7 +288,7 @@ export default function AdminDashboard({ onBack, catalog }) {
             className="inline-flex w-full min-h-10 items-center justify-center gap-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-stone-50"
           >
             <ArrowLeft className="h-4 w-4" />
-            Ir al pedido
+            Ir al inicio
           </button>
           <button
             type="button"

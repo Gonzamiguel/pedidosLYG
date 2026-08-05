@@ -1,6 +1,6 @@
 import { Building2, Phone, User, MapPin } from 'lucide-react'
 
-export default function ClientForm({ companies, value, onChange, errors = {} }) {
+export default function ClientForm({ company, value, onChange, errors = {} }) {
   const field =
     'mt-1.5 w-full min-h-12 rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-800 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200'
 
@@ -14,27 +14,15 @@ export default function ClientForm({ companies, value, onChange, errors = {} }) 
       </p>
 
       <div className="mt-3.5 grid gap-3.5">
-        <label className="block">
-          <span className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
-            <Building2 className="h-4 w-4 text-slate-400" />
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3">
+          <span className="flex items-center gap-1.5 text-sm font-medium text-amber-800">
+            <Building2 className="h-4 w-4" />
             Empresa
           </span>
-          <select
-            className={field}
-            value={value.companyId}
-            onChange={(e) => onChange({ ...value, companyId: e.target.value })}
-          >
-            <option value="">Seleccionar empresa…</option>
-            {companies.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.code} — {c.name}
-              </option>
-            ))}
-          </select>
-          {errors.companyId && (
-            <span className="mt-1 block text-xs text-rose-600">{errors.companyId}</span>
-          )}
-        </label>
+          <p className="mt-1 font-semibold text-slate-900">
+            {company?.code} — {company?.name}
+          </p>
+        </div>
 
         <label className="block">
           <span className="flex items-center gap-1.5 text-sm font-medium text-slate-700">

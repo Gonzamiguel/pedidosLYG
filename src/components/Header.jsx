@@ -1,8 +1,9 @@
+import { Link } from 'react-router-dom'
 import { ChefHat, Shield } from 'lucide-react'
 import { ORDER_DEADLINE } from '../data/constants'
 import { isPastDeadline } from '../utils/orderHelpers'
 
-export default function Header({ onOpenAdmin }) {
+export default function Header({ company }) {
   const past = isPastDeadline()
 
   return (
@@ -17,7 +18,9 @@ export default function Header({ onOpenAdmin }) {
               Pedidos L&G
             </h1>
             <p className="truncate text-[11px] text-slate-500 sm:text-sm">
-              Almuerzo y Cena · Lun a Dom
+              {company
+                ? `${company.code} · Almuerzo y Cena`
+                : 'Almuerzo y Cena · Lun a Dom'}
             </p>
           </div>
         </div>
@@ -35,15 +38,14 @@ export default function Header({ onOpenAdmin }) {
             <span className="hidden sm:inline">Límite {ORDER_DEADLINE.label}</span>
           </div>
 
-          <button
-            type="button"
-            onClick={onOpenAdmin}
+          <Link
+            to="/admin"
             className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-white text-amber-700 transition hover:bg-amber-50 sm:h-11 sm:w-auto sm:gap-2 sm:px-3"
             aria-label="Ingreso administrador"
           >
             <Shield className="h-4 w-4" />
             <span className="hidden text-sm font-semibold sm:inline">Admin</span>
-          </button>
+          </Link>
         </div>
       </div>
     </header>

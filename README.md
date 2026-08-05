@@ -34,10 +34,22 @@ Credenciales en `.env` (no se versiona). Ver `.env.example`.
 }
 ```
 
-3. En la app → **Admin** → iniciar sesión
+3. En la app → `/admin` → iniciar sesión
 4. Creá empresas, platos y menús desde el panel (arranca vacío)
+5. En **Empresas**, copiá el link de cada una (`/pedido/{codigo}`) y enviáselo
 
 Publicá las reglas de `firestore.rules` en Firebase.
+
+## Links por empresa
+
+Cada empresa tiene su propio formulario:
+
+```
+https://tu-dominio.com/pedido/lyg
+https://tu-dominio.com/pedido/gyl
+```
+
+El empleado no elige empresa: ya viene fijada en el link.
 
 ## Módulos del panel admin
 
