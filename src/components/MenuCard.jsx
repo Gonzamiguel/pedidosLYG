@@ -61,19 +61,21 @@ export default function MenuCard({
                       <p className="text-[15px] font-semibold leading-snug text-slate-900">
                         {dish.name}
                       </p>
-                      <span
-                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
-                          TAG_STYLES[dish.tag] || 'bg-slate-100 text-slate-600'
-                        }`}
-                      >
-                        {dish.tag}
-                      </span>
+                      {dish.tag ? (
+                        <span
+                          className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                            TAG_STYLES[dish.tag] || 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {dish.tag}
+                        </span>
+                      ) : null}
                     </div>
-                    {dish.desc && (
+                    {dish.desc ? (
                       <p className="mt-1 text-xs leading-relaxed text-slate-500 sm:text-sm">
                         {dish.desc}
                       </p>
-                    )}
+                    ) : null}
                   </div>
                   <div className="flex justify-end">
                     <QuantitySelector

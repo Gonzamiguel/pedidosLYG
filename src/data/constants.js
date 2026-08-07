@@ -10,13 +10,6 @@ export const DAYS = [
 
 export const DAY_IDS = DAYS.map((d) => d.id)
 
-export const DISH_TAGS = [
-  'Tradicional',
-  'Saludable / Veggie',
-  'Light / Sin TACC',
-  'Especial',
-]
-
 export const MEAL_SLOTS = {
   lunch: {
     key: 'lunch',
