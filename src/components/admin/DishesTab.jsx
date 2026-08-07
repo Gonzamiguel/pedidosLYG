@@ -1,30 +1,25 @@
 import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
-import { DISH_TAGS } from '../../data/constants'
 
 const field =
   'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
 
 export default function DishesTab({ dishes, onCreate, onDelete }) {
-  const [form, setForm] = useState({
-    name: '',
-    tag: DISH_TAGS[0],
-    desc: '',
-  })
+  const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   const submit = async (e) => {
     e.preventDefault()
-    if (!form.name.trim()) {
+    if (!name.trim()) {
       setError('El nombre es obligatorio')
       return
     }
     setBusy(true)
     setError('')
     try {
-      await onCreate(form)
-      setForm({ name: '', tag: DISH_TAGS[0], desc: '' })
+      await onCreate({ name })
+      setName('')
     } catch (err) {
       setError(err.message || 'Error al crear plato')
     } finally {
@@ -45,40 +40,14 @@ export default function DishesTab({ dishes, onCreate, onDelete }) {
           Se agrega al catálogo central disponible para todos los menús.
         </p>
 
-        <div className="mt-4 space-y-3">
+        <div className="mt-4">
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Nombre</span>
             <input
               className={field}
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Ej: Milanesa de Ternera con Puré"
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Etiqueta</span>
-            <select
-              className={field}
-              value={form.tag}
-              onChange={(e) => setForm({ ...form, tag: e.target.value })}
-            >
-              {DISH_TAGS.map((tag) => (
-                <option key={tag} value={tag}>
-                  {tag}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">
-              Descripción / guarnición
-            </span>
-            <textarea
-              rows={3}
-              className={`${field} py-2`}
-              value={form.desc}
-              onChange={(e) => setForm({ ...form, desc: e.target.value })}
-              placeholder="Opciones de guarnición u observaciones"
             />
           </label>
         </div>
@@ -122,12 +91,6 @@ export default function DishesTab({ dishes, onCreate, onDelete }) {
               >
                 <div className="min-w-0">
                   <p className="font-semibold text-slate-900">{dish.name}</p>
-                  <p className="mt-0.5 text-xs font-medium text-amber-700">
-                    {dish.tag}
-                  </p>
-                  {dish.desc && (
-                    <p className="mt-1 text-sm text-slate-500">{dish.desc}</p>
-                  )}
                 </div>
                 <button
                   type="button"

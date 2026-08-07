@@ -485,9 +485,11 @@ function SlotPicker({ title, tone, dishes, selected, onToggle }) {
                   />
                   <span className="text-slate-800">
                     {dish.name}
-                    <span className="ml-2 text-xs text-slate-400">
-                      {dish.tag}
-                    </span>
+                    {dish.tag ? (
+                      <span className="ml-2 text-xs text-slate-400">
+                        {dish.tag}
+                      </span>
+                    ) : null}
                   </span>
                 </label>
               </li>

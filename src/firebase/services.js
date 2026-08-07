@@ -113,11 +113,9 @@ export async function getDishes() {
   }
 }
 
-export async function createDish({ name, tag, desc }) {
+export async function createDish({ name }) {
   const payload = {
     name: name.trim(),
-    tag,
-    desc: (desc || '').trim(),
     createdAt: new Date().toISOString(),
   }
 
