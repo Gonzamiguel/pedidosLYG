@@ -1,5 +1,4 @@
 import { DAYS, DAY_IDS, MEAL_SLOTS, ORDER_DEADLINE } from '../data/constants'
-import { weekRangeText } from './weekHelpers'
 
 export function countSlotMeals(slotMap = {}) {
   return Object.values(slotMap).reduce((sum, n) => sum + (Number(n) || 0), 0)
@@ -36,63 +35,6 @@ export function isPastDeadline(date = new Date()) {
   const limit = new Date(date)
   limit.setHours(ORDER_DEADLINE.hour, ORDER_DEADLINE.minute, 0, 0)
   return date > limit
-}
-
-export function buildWhatsAppMessage({
-  company,
-  week,
-  userName,
-  userSector,
-  userPhone,
-  details,
-  dishesById,
-}) {
-  const lines = [
-    `*Pedidos Logística y Gastronomía*`,
-    `Empresa: ${company?.code || ''} — ${company?.name || ''}`,
-  ]
-  if (week) {
-    lines.push(`Semana: ${weekRangeText(week)}`)
-  }
-  lines.push(
-    `Solicitante: ${userName}`,
-    `Sector: ${userSector}`,
-    `Tel: ${userPhone}`,
-    ``,
-  )
-
-  for (const day of DAYS) {
-    const dayDetails = details[day.id]
-    const dayTotal = countDayMeals(dayDetails)
-    if (!dayTotal) continue
-
-    lines.push(`*${day.label}* (${dayTotal} viandas)`)
-
-    for (const slot of ['lunch', 'dinner']) {
-      const slotMap = dayDetails?.[slot] || {}
-      const entries = Object.entries(slotMap).filter(([, n]) => Number(n) > 0)
-      if (!entries.length) continue
-
-      lines.push(`  ${MEAL_SLOTS[slot].label}:`)
-      for (const [dishId, count] of entries) {
-        const dishName = dishesById[dishId]?.name || dishId
-        lines.push(`  • ${count}x ${dishName}`)
-      }
-    }
-    lines.push('')
-  }
-
-  lines.push(`*Total: ${countTotalMeals(details)} viandas*`)
-  return lines.join('\n')
-}
-
-export function buildWhatsAppUrl(message, phone = '') {
-  const text = encodeURIComponent(message)
-  const digits = phone.replace(/\D/g, '')
-  if (digits) {
-    return `https://wa.me/${digits}?text=${text}`
-  }
-  return `https://wa.me/?text=${text}`
 }
 
 /**
