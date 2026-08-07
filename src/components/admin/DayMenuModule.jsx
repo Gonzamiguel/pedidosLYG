@@ -181,38 +181,47 @@ export default function DayMenuModule({
       </div>
 
       <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-medium text-slate-500">
-          Para {headlineDate}
-          {dayMeta ? ` (${dayMeta.label})` : ''} necesitás
-        </p>
-        <p className="mt-1 text-xs text-slate-400">{formatYmd(date)}</p>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-sm font-medium text-slate-500">
+              Para {headlineDate} necesitás
+            </p>
+            <p className="mt-0.5 text-xs text-slate-400">{formatYmd(date)}</p>
+          </div>
+          {menuTotals.length > 0 && (
+            <p className="text-sm text-slate-500">
+              Total:{' '}
+              <span className="font-semibold tabular-nums text-slate-800">
+                {mealsTotal}
+              </span>{' '}
+              viandas · {menuTotals.length} menús
+            </p>
+          )}
+        </div>
 
         {!menuTotals.length ? (
-          <p className="mt-6 rounded-lg border border-dashed border-stone-300 px-4 py-8 text-center text-sm text-slate-500">
+          <p className="mt-5 rounded-lg border border-dashed border-stone-300 px-4 py-8 text-center text-sm text-slate-500">
             No hay pedidos para esta fecha con estos filtros.
           </p>
         ) : (
-          <>
-            <ul className="mt-5 space-y-2">
-              {menuTotals.map((item) => (
-                <li
-                  key={item.dishId}
-                  className="flex items-baseline justify-between gap-4 border-b border-stone-100 py-2.5 last:border-b-0"
+          <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {menuTotals.map((item) => (
+              <li
+                key={item.dishId}
+                className="min-w-0 rounded-lg bg-stone-50 px-3 py-2.5"
+              >
+                <p className="text-2xl font-semibold tabular-nums leading-none text-slate-900">
+                  {item.count}
+                </p>
+                <p
+                  className="mt-1 truncate text-sm font-medium text-slate-600"
+                  title={item.name}
                 >
-                  <span className="text-lg font-semibold text-slate-900">
-                    {item.count}{' '}
-                    <span className="font-medium text-slate-700">
-                      {item.name}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-sm text-slate-500">
-              Total: <span className="font-semibold text-slate-800">{mealsTotal}</span>{' '}
-              viandas
-            </p>
-          </>
+                  {item.name}
+                </p>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 
