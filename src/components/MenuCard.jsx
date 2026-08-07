@@ -3,10 +3,10 @@ import { MEAL_SLOTS } from '../data/constants'
 import QuantitySelector from './QuantitySelector'
 
 const TAG_STYLES = {
-  Tradicional: 'bg-stone-100 text-stone-700',
-  'Saludable / Veggie': 'bg-emerald-50 text-emerald-700',
-  'Light / Sin TACC': 'bg-sky-50 text-sky-700',
-  Especial: 'bg-violet-50 text-violet-700',
+  Tradicional: 'bg-lg-100 text-lg-700',
+  'Saludable / Veggie': 'bg-bordo-50 text-bordo-700',
+  'Light / Sin TACC': 'bg-lg-50 text-lg-600',
+  Especial: 'bg-bordo-100 text-bordo-800',
 }
 
 export default function MenuCard({
@@ -22,11 +22,11 @@ export default function MenuCard({
   const isLunch = slot === 'lunch'
 
   const shell = isLunch
-    ? 'border-amber-200 bg-amber-50/70'
-    : 'border-indigo-200 bg-indigo-50/70'
+    ? 'border-bordo-200 bg-bordo-50/70'
+    : 'border-lg-200 bg-lg-100/70'
 
-  const title = isLunch ? 'text-amber-800' : 'text-indigo-800'
-  const schedule = isLunch ? 'text-amber-700/80' : 'text-indigo-700/80'
+  const title = isLunch ? 'text-bordo-800' : 'text-lg-800'
+  const schedule = isLunch ? 'text-bordo-700/80' : 'text-lg-700/80'
   const Icon = isLunch ? Sun : Moon
 
   return (
@@ -98,8 +98,8 @@ export default function MenuCard({
           rows={2}
           className={`w-full rounded-xl border bg-white/90 px-3 py-3 text-base text-slate-800 outline-none transition focus:ring-2 ${
             isLunch
-              ? 'border-amber-200 focus:border-amber-400 focus:ring-amber-200'
-              : 'border-indigo-200 focus:border-indigo-400 focus:ring-indigo-200'
+              ? 'border-bordo-200 focus:border-bordo-400 focus:ring-bordo-200'
+              : 'border-lg-200 focus:border-lg-400 focus:ring-lg-200'
           }`}
           placeholder='Ej: "1 sin sal, 3 para Mantenimiento"'
           value={note}

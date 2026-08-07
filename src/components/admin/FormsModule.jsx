@@ -260,7 +260,7 @@ export default function FormsModule({ catalog }) {
                 onClick={() => setActiveDay(d.id)}
                 className={`min-h-10 rounded-lg px-3 text-sm font-semibold ${
                   activeDay === d.id
-                    ? 'bg-slate-800 text-white'
+                    ? 'bg-bordo-700 text-white'
                     : 'bg-stone-100 text-slate-600 hover:bg-stone-200'
                 }`}
               >
@@ -303,7 +303,7 @@ export default function FormsModule({ catalog }) {
             type="button"
             disabled={busy || !catalog.companies.length}
             onClick={save}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-slate-800 px-5 text-sm font-semibold text-white hover:bg-slate-900 disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-bordo-700 px-5 text-sm font-semibold text-white hover:bg-bordo-800 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
             Guardar formulario y generar link
@@ -327,7 +327,7 @@ export default function FormsModule({ catalog }) {
           type="button"
           onClick={startCreate}
           disabled={!catalog.companies.length}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-slate-800 px-4 text-sm font-semibold text-white hover:bg-slate-900 disabled:opacity-50"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-bordo-700 px-4 text-sm font-semibold text-white hover:bg-bordo-800 disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
           Generar formulario
@@ -380,7 +380,7 @@ export default function FormsModule({ catalog }) {
                   <button
                     type="button"
                     onClick={() => copyLink(form.id)}
-                    className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-slate-800 px-3 text-xs font-semibold text-white hover:bg-slate-900"
+                    className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-bordo-700 px-3 text-xs font-semibold text-white hover:bg-bordo-800"
                   >
                     {copied ? (
                       <Check className="h-3.5 w-3.5" />
@@ -444,14 +444,14 @@ function SlotPicker({ title, tone, dishes, selected, onToggle }) {
     <div
       className={`rounded-xl border p-3 ${
         tone === 'lunch'
-          ? 'border-amber-200 bg-amber-50/40'
-          : 'border-indigo-200 bg-indigo-50/40'
+          ? 'border-bordo-200 bg-bordo-50/40'
+          : 'border-lg-200 bg-lg-100/40'
       }`}
     >
       <div className="mb-2 flex items-center justify-between">
         <h4
           className={`text-sm font-semibold ${
-            tone === 'lunch' ? 'text-amber-800' : 'text-indigo-800'
+            tone === 'lunch' ? 'text-bordo-800' : 'text-lg-800'
           }`}
         >
           {title}
@@ -481,7 +481,7 @@ function SlotPicker({ title, tone, dishes, selected, onToggle }) {
                     type="checkbox"
                     checked={checked}
                     onChange={() => onToggle(dish.id)}
-                    className="accent-slate-800"
+                    className="accent-bordo-700"
                   />
                   <span className="text-slate-800">
                     {dish.name}

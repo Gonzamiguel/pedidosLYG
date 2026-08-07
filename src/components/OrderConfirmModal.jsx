@@ -206,8 +206,8 @@ export default function OrderConfirmModal({
                             <p
                               className={`text-xs font-bold uppercase tracking-wide ${
                                 slot === 'lunch'
-                                  ? 'text-amber-700'
-                                  : 'text-indigo-700'
+                                  ? 'text-bordo-700'
+                                  : 'text-lg-700'
                               }`}
                             >
                               {MEAL_SLOTS[slot].label}
@@ -247,7 +247,7 @@ export default function OrderConfirmModal({
                 type="button"
                 disabled={submitting || total === 0}
                 onClick={handleSubmit}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-slate-800 px-4 text-sm font-semibold text-white transition hover:bg-slate-900 disabled:opacity-50"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-bordo-700 px-4 text-sm font-semibold text-white transition hover:bg-bordo-800 disabled:opacity-50"
               >
                 {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

@@ -273,8 +273,8 @@ export default function DayMenuModule({
                         <span
                           className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
                             row.slot === 'lunch'
-                              ? 'bg-amber-50 text-amber-800'
-                              : 'bg-indigo-50 text-indigo-800'
+                              ? 'bg-bordo-50 text-bordo-800'
+                              : 'bg-lg-100 text-lg-800'
                           }`}
                         >
                           {row.slotLabel}

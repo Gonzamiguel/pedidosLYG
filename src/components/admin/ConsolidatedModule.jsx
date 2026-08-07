@@ -186,7 +186,7 @@ export default function ConsolidatedModule({
             type="button"
             disabled={!rows.length}
             onClick={() => exportConsolidatedExcel(rows)}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-800 px-4 text-sm font-semibold text-white hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-bordo-700 px-4 text-sm font-semibold text-white hover:bg-bordo-800 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Download className="h-4 w-4" />
             Exportar Excel
@@ -319,8 +319,8 @@ export default function ConsolidatedModule({
                         <span
                           className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
                             row.slot === 'lunch'
-                              ? 'bg-amber-50 text-amber-800'
-                              : 'bg-indigo-50 text-indigo-800'
+                              ? 'bg-bordo-50 text-bordo-800'
+                              : 'bg-lg-100 text-lg-800'
                           }`}
                         >
                           {row.slotLabel}

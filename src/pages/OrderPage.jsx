@@ -127,7 +127,7 @@ export default function OrderPage() {
           </p>
           <Link
             to="/"
-            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-800 px-5 text-sm font-semibold text-white hover:bg-slate-900"
+            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-bordo-700 px-5 text-sm font-semibold text-white hover:bg-bordo-800"
           >
             Ir al inicio
           </Link>
@@ -254,7 +254,7 @@ export default function OrderPage() {
           <button
             type="button"
             onClick={openConfirm}
-            className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg bg-slate-800 px-3.5 text-sm font-semibold text-white hover:bg-slate-900 sm:px-6"
+            className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg bg-bordo-700 px-3.5 text-sm font-semibold text-white hover:bg-bordo-800 sm:px-6"
           >
             <span className="sm:hidden">Revisar pedido</span>
             <span className="hidden sm:inline">Revisar y Enviar Pedido</span>

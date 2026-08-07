@@ -77,7 +77,7 @@ export default function CompaniesTab({ companies, onCreate, onDelete }) {
         <button
           type="submit"
           disabled={busy}
-          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-slate-800 px-4 text-sm font-semibold text-white hover:bg-slate-900 disabled:opacity-50"
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-bordo-700 px-4 text-sm font-semibold text-white hover:bg-bordo-800 disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
           Agregar empresa

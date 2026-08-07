@@ -180,7 +180,7 @@ export default function AdminDashboard({ onBack, catalog }) {
               <button
                 type="submit"
                 disabled={busy}
-                className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-lg bg-slate-800 text-sm font-semibold text-white hover:bg-slate-900 disabled:opacity-50"
+                className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-lg bg-bordo-700 text-sm font-semibold text-white hover:bg-bordo-800 disabled:opacity-50"
               >
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                 Iniciar sesión
@@ -207,7 +207,7 @@ export default function AdminDashboard({ onBack, catalog }) {
               )}
               <button
                 type="submit"
-                className="w-full min-h-11 rounded-lg bg-slate-800 text-sm font-semibold text-white hover:bg-slate-900"
+                className="w-full min-h-11 rounded-lg bg-bordo-700 text-sm font-semibold text-white hover:bg-bordo-800"
               >
                 Entrar
               </button>
@@ -240,20 +240,20 @@ export default function AdminDashboard({ onBack, catalog }) {
                 onClick={() => setModule(id)}
                 className={`flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition ${
                   active
-                    ? 'bg-slate-800 text-white'
+                    ? 'bg-bordo-700 text-white'
                     : 'text-slate-600 hover:bg-stone-50 hover:text-slate-900'
                 }`}
               >
                 <Icon
                   className={`mt-0.5 h-5 w-5 shrink-0 ${
-                    active ? 'text-amber-300' : 'text-slate-400'
+                    active ? 'text-bordo-200' : 'text-slate-400'
                   }`}
                 />
                 <span>
                   <span className="block text-sm font-semibold">{label}</span>
                   <span
                     className={`block text-xs ${
-                      active ? 'text-slate-300' : 'text-slate-500'
+                      active ? 'text-bordo-100' : 'text-slate-500'
                     }`}
                   >
                     {description}

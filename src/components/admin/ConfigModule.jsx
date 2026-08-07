@@ -33,20 +33,20 @@ export default function ConfigModule({ catalog }) {
               onClick={() => setView(id)}
               className={`flex items-start gap-3 rounded-xl border px-4 py-4 text-left transition ${
                 active
-                  ? 'border-slate-800 bg-slate-800 text-white'
+                  ? 'border-bordo-700 bg-bordo-700 text-white'
                   : 'border-stone-200 bg-white text-slate-700 hover:border-stone-300'
               }`}
             >
               <Icon
                 className={`mt-0.5 h-5 w-5 shrink-0 ${
-                  active ? 'text-amber-300' : 'text-slate-400'
+                  active ? 'text-bordo-200' : 'text-slate-400'
                 }`}
               />
               <span>
                 <span className="block text-sm font-semibold">{label}</span>
                 <span
                   className={`mt-0.5 block text-xs ${
-                    active ? 'text-slate-300' : 'text-slate-500'
+                    active ? 'text-bordo-100' : 'text-slate-500'
                   }`}
                 >
                   {description}

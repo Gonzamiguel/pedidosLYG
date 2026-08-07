@@ -30,7 +30,7 @@ export default function DayTabs({
               onClick={() => onChange(day.id)}
               className={`relative flex h-12 min-w-[3.25rem] shrink-0 flex-col items-center justify-center rounded-lg px-2.5 text-xs font-semibold transition sm:h-11 sm:min-w-0 sm:flex-row sm:gap-2 sm:px-3.5 sm:text-sm ${
                 active
-                  ? 'bg-slate-800 text-white'
+                  ? 'bg-bordo-700 text-white'
                   : 'bg-white text-slate-600 ring-1 ring-slate-200 active:bg-stone-50'
               }`}
             >
