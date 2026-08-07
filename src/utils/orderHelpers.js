@@ -112,17 +112,23 @@ export function exportKitchenCsv(consolidated, dishesById, companyLabel) {
 export function downloadCsv(rows, filename) {
   const csv = rows
     .map((row) =>
-      row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','),
+      row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(';'),
     )
-    .join('\n')
+    .join('\r\n')
 
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
+  const blob = new Blob(['\ufeff' + csv], {
+    type: 'text/csv;charset=utf-8;',
+  })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = filename
   a.click()
   URL.revokeObjectURL(url)
+}
+
+function cantidadYPlato(count, dishName) {
+  return `${count} ${dishName}`.trim()
 }
 
 export function exportConsolidatedExcel(detailRows) {
@@ -134,8 +140,9 @@ export function exportConsolidatedExcel(detailRows) {
       'Teléfono',
       'Día',
       'Servicio',
-      'Plato',
+      'Cantidad y plato',
       'Cantidad',
+      'Plato',
       'Período',
       'Cargado',
     ],
@@ -149,8 +156,9 @@ export function exportConsolidatedExcel(detailRows) {
       row.userPhone || '',
       row.dayLabel,
       row.slotLabel,
-      row.dishName,
+      cantidadYPlato(row.count, row.dishName),
       String(row.count),
+      row.dishName,
       row.periodLabel || '',
       row.createdAtLabel || '',
     ])
@@ -162,31 +170,45 @@ export function exportConsolidatedExcel(detailRows) {
   )
 }
 
-/** Export Menú del día: totales + detalle de quién pidió */
+/** Export Menú del día: hoja de totales + hoja de registros, ambos en columnas */
 export function exportDayMenuExcel({ dateLabel, dateYmd, menuTotals, detailRows }) {
+  const stamp = dateYmd || new Date().toISOString().slice(0, 10)
+  const fecha = dateLabel || stamp
+
+  // Archivo 1 mentalmente: todo en un CSV ordenado por bloques de tablas limpias
   const rows = [
-    ['Menú del día', dateLabel || dateYmd || ''],
+    ['Fecha', fecha],
     [],
-    ['Totales a preparar'],
-    ['Plato', 'Cantidad'],
+    ['TOTALES A PREPARAR'],
+    ['Cantidad y plato', 'Cantidad', 'Plato'],
   ]
 
   for (const item of menuTotals) {
-    rows.push([item.name, String(item.count)])
+    rows.push([
+      cantidadYPlato(item.count, item.name),
+      String(item.count),
+      item.name,
+    ])
   }
 
   const mealsTotal = menuTotals.reduce((s, i) => s + i.count, 0)
-  rows.push(['TOTAL', String(mealsTotal)])
+  rows.push([
+    cantidadYPlato(mealsTotal, 'viandas (total)'),
+    String(mealsTotal),
+    'TOTAL',
+  ])
+
   rows.push([])
-  rows.push(['Quién lo pidió'])
+  rows.push(['REGISTROS DEL DÍA'])
   rows.push([
     'Empresa',
     'Quién pidió',
     'Sector',
     'Teléfono',
     'Servicio',
-    'Plato',
+    'Cantidad y plato',
     'Cantidad',
+    'Plato',
     'Cargado',
   ])
 
@@ -197,13 +219,13 @@ export function exportDayMenuExcel({ dateLabel, dateYmd, menuTotals, detailRows 
       row.userSector || '',
       row.userPhone || '',
       row.slotLabel,
-      row.dishName,
+      cantidadYPlato(row.count, row.dishName),
       String(row.count),
+      row.dishName,
       row.createdAtLabel || '',
     ])
   }
 
-  const stamp = dateYmd || new Date().toISOString().slice(0, 10)
   downloadCsv(rows, `menu-del-dia-${stamp}.csv`)
 }
 
