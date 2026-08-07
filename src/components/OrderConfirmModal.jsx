@@ -135,11 +135,6 @@ export default function OrderConfirmModal({
                 <p className="mt-0.5 text-sm text-slate-500">
                   {total} viandas · {company?.code} · {client.userName}
                 </p>
-                {week && (
-                  <p className="mt-0.5 text-xs font-medium text-slate-600">
-                    {weekRangeText(week)}
-                  </p>
-                )}
               </div>
               <button
                 type="button"

@@ -9,7 +9,6 @@ import { aggregateMenuTotals } from '../../utils/orderHelpers'
 import {
   dayIdFromYmd,
   formatDateTime,
-  formatYmd,
   formatYmdTitle,
   toDateInputValue,
   ymdInRange,
@@ -187,7 +186,6 @@ export default function DayMenuModule({
             <p className="text-sm font-medium text-slate-500">
               Para {headlineDate} necesitás
             </p>
-            <p className="mt-0.5 text-xs text-slate-400">{formatYmd(date)}</p>
           </div>
           {menuTotals.length > 0 && (
             <p className="text-sm text-slate-500">

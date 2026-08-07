@@ -169,7 +169,6 @@ export default function OrderPage() {
             <p className="mt-1 text-lg font-semibold text-slate-900">
               {weekLabel(form)}
             </p>
-            <p className="text-sm text-slate-600">{weekRangeText(form)}</p>
             <p className="mt-1 text-sm font-medium text-slate-800">
               {company.code} — {company.name}
             </p>
