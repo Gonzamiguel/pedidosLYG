@@ -162,6 +162,51 @@ export function exportConsolidatedExcel(detailRows) {
   )
 }
 
+/** Export Menú del día: totales + detalle de quién pidió */
+export function exportDayMenuExcel({ dateLabel, dateYmd, menuTotals, detailRows }) {
+  const rows = [
+    ['Menú del día', dateLabel || dateYmd || ''],
+    [],
+    ['Totales a preparar'],
+    ['Plato', 'Cantidad'],
+  ]
+
+  for (const item of menuTotals) {
+    rows.push([item.name, String(item.count)])
+  }
+
+  const mealsTotal = menuTotals.reduce((s, i) => s + i.count, 0)
+  rows.push(['TOTAL', String(mealsTotal)])
+  rows.push([])
+  rows.push(['Quién lo pidió'])
+  rows.push([
+    'Empresa',
+    'Quién pidió',
+    'Sector',
+    'Teléfono',
+    'Servicio',
+    'Plato',
+    'Cantidad',
+    'Cargado',
+  ])
+
+  for (const row of detailRows) {
+    rows.push([
+      row.companyCode,
+      row.userName,
+      row.userSector || '',
+      row.userPhone || '',
+      row.slotLabel,
+      row.dishName,
+      String(row.count),
+      row.createdAtLabel || '',
+    ])
+  }
+
+  const stamp = dateYmd || new Date().toISOString().slice(0, 10)
+  downloadCsv(rows, `menu-del-dia-${stamp}.csv`)
+}
+
 export function aggregateMenuTotals(detailRows) {
   const map = new Map()
   for (const row of detailRows) {

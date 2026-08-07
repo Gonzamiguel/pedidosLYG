@@ -2,10 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
+  Download,
   UtensilsCrossed,
 } from 'lucide-react'
 import { MEAL_SLOTS } from '../../data/constants'
-import { aggregateMenuTotals } from '../../utils/orderHelpers'
+import {
+  aggregateMenuTotals,
+  exportDayMenuExcel,
+} from '../../utils/orderHelpers'
 import {
   dayIdFromYmd,
   formatDateTime,
@@ -126,16 +130,34 @@ export default function DayMenuModule({
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
-          <UtensilsCrossed className="h-5 w-5 text-slate-500" />
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900">
-              Menú del día
-            </h3>
-            <p className="text-sm text-slate-500">
-              Totales a preparar y quién lo pidió, para una fecha concreta.
-            </p>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-2">
+            <UtensilsCrossed className="h-5 w-5 shrink-0 text-slate-500" />
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">
+                Menú del día
+              </h3>
+              <p className="text-sm text-slate-500">
+                Totales a preparar y quién lo pidió, para una fecha concreta.
+              </p>
+            </div>
           </div>
+          <button
+            type="button"
+            disabled={!rows.length}
+            onClick={() =>
+              exportDayMenuExcel({
+                dateLabel: headlineDate,
+                dateYmd: date,
+                menuTotals,
+                detailRows: rows,
+              })
+            }
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-bordo-700 px-4 text-sm font-semibold text-white hover:bg-bordo-800 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Download className="h-4 w-4" />
+            Exportar Excel
+          </button>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
