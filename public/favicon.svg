@@ -1,4 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="10" fill="#1e293b"/>
-  <text x="32" y="40" text-anchor="middle" font-family="Georgia, serif" font-size="22" font-weight="700" fill="#f8fafc">LG</text>
+  <rect width="64" height="64" rx="10" fill="#2c343c"/>
+  <path d="M14 46 L32 18 L50 46 Z" fill="#7a1f2b"/>
+  <path d="M14 46 L32 18 L18 46 Z" fill="#68727e" opacity="0.55"/>
+  <path d="M32 18 L50 46 L42 46 Z" fill="#b0b7bf" opacity="0.7"/>
+  <text x="32" y="52" text-anchor="middle" font-family="Source Sans 3, Segoe UI, sans-serif" font-size="9" font-weight="700" fill="#ffffff">L&amp;G</text>
 </svg>

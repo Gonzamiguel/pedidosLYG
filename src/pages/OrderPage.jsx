@@ -12,7 +12,6 @@ import { useCatalog } from '../hooks/useCatalog'
 import { weekLabel, weekRangeText } from '../utils/weekHelpers'
 import {
   countTotalMeals,
-  setDayNote,
   setDishCount,
 } from '../utils/orderHelpers'
 
@@ -127,7 +126,7 @@ export default function OrderPage() {
           </p>
           <Link
             to="/"
-            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-800 px-5 text-sm font-semibold text-white hover:bg-slate-900"
+            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-bordo-700 px-5 text-sm font-semibold text-white hover:bg-bordo-800"
           >
             Ir al inicio
           </Link>
@@ -169,7 +168,6 @@ export default function OrderPage() {
             <p className="mt-1 text-lg font-semibold text-slate-900">
               {weekLabel(form)}
             </p>
-            <p className="text-sm text-slate-600">{weekRangeText(form)}</p>
             <p className="mt-1 text-sm font-medium text-slate-800">
               {company.code} — {company.name}
             </p>
@@ -204,14 +202,10 @@ export default function OrderPage() {
               dishIds={dayMenu.lunch}
               dishesById={catalog.dishesById}
               quantities={details[activeDay]?.lunch}
-              note={details[activeDay]?.notes?.lunch || ''}
               onQuantityChange={(dishId, count) =>
                 setDetails((prev) =>
                   setDishCount(prev, activeDay, 'lunch', dishId, count),
                 )
-              }
-              onNoteChange={(note) =>
-                setDetails((prev) => setDayNote(prev, activeDay, 'lunch', note))
               }
             />
             <MenuCard
@@ -219,15 +213,9 @@ export default function OrderPage() {
               dishIds={dayMenu.dinner}
               dishesById={catalog.dishesById}
               quantities={details[activeDay]?.dinner}
-              note={details[activeDay]?.notes?.dinner || ''}
               onQuantityChange={(dishId, count) =>
                 setDetails((prev) =>
                   setDishCount(prev, activeDay, 'dinner', dishId, count),
-                )
-              }
-              onNoteChange={(note) =>
-                setDetails((prev) =>
-                  setDayNote(prev, activeDay, 'dinner', note),
                 )
               }
             />
@@ -254,7 +242,7 @@ export default function OrderPage() {
           <button
             type="button"
             onClick={openConfirm}
-            className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg bg-slate-800 px-3.5 text-sm font-semibold text-white hover:bg-slate-900 sm:px-6"
+            className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg bg-bordo-700 px-3.5 text-sm font-semibold text-white hover:bg-bordo-800 sm:px-6"
           >
             <span className="sm:hidden">Revisar pedido</span>
             <span className="hidden sm:inline">Revisar y Enviar Pedido</span>

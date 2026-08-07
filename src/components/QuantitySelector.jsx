@@ -3,13 +3,13 @@ import { Minus, Plus } from 'lucide-react'
 export default function QuantitySelector({ value, onChange, tone = 'lunch' }) {
   const btnTone =
     tone === 'dinner'
-      ? 'bg-indigo-100 text-indigo-800 active:bg-indigo-300'
-      : 'bg-amber-100 text-amber-800 active:bg-amber-300'
+      ? 'bg-lg-200 text-lg-800 active:bg-lg-300'
+      : 'bg-bordo-100 text-bordo-800 active:bg-bordo-300'
 
   const inputTone =
     tone === 'dinner'
-      ? 'border-indigo-200 focus:border-indigo-400 focus:ring-indigo-200'
-      : 'border-amber-200 focus:border-amber-400 focus:ring-amber-200'
+      ? 'border-lg-200 focus:border-lg-400 focus:ring-lg-200'
+      : 'border-bordo-200 focus:border-bordo-400 focus:ring-bordo-200'
 
   const bump = (delta) => {
     onChange(Math.max(0, (Number(value) || 0) + delta))

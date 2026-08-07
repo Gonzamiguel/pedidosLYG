@@ -2,7 +2,7 @@ import { Building2, Phone, User, MapPin } from 'lucide-react'
 
 export default function ClientForm({ company, value, onChange, errors = {} }) {
   const field =
-    'mt-1.5 w-full min-h-12 rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-800 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200'
+    'mt-1.5 w-full min-h-12 rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-800 outline-none transition focus:border-bordo-400 focus:ring-2 focus:ring-bordo-200'
 
   return (
     <section className="animate-fade-up rounded-2xl border border-slate-200/80 bg-white/90 p-3.5 shadow-sm sm:p-5">
@@ -14,8 +14,8 @@ export default function ClientForm({ company, value, onChange, errors = {} }) {
       </p>
 
       <div className="mt-3.5 grid gap-3.5">
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3">
-          <span className="flex items-center gap-1.5 text-sm font-medium text-amber-800">
+        <div className="rounded-xl border border-bordo-200 bg-bordo-50 px-3.5 py-3">
+          <span className="flex items-center gap-1.5 text-sm font-medium text-bordo-800">
             <Building2 className="h-4 w-4" />
             Empresa
           </span>

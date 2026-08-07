@@ -1,5 +1,4 @@
 import { DAYS, DAY_IDS, MEAL_SLOTS, ORDER_DEADLINE } from '../data/constants'
-import { weekRangeText } from './weekHelpers'
 
 export function countSlotMeals(slotMap = {}) {
   return Object.values(slotMap).reduce((sum, n) => sum + (Number(n) || 0), 0)
@@ -32,85 +31,10 @@ export function setDishCount(details, dayId, slot, dishId, count) {
   return next
 }
 
-export function setDayNote(details, dayId, slot, note) {
-  const next = structuredClone(details)
-  if (!next[dayId]) {
-    next[dayId] = {
-      lunch: {},
-      dinner: {},
-      notes: { lunch: '', dinner: '' },
-    }
-  }
-  if (!next[dayId].notes) next[dayId].notes = { lunch: '', dinner: '' }
-  next[dayId].notes[slot] = note
-  return next
-}
-
 export function isPastDeadline(date = new Date()) {
   const limit = new Date(date)
   limit.setHours(ORDER_DEADLINE.hour, ORDER_DEADLINE.minute, 0, 0)
   return date > limit
-}
-
-export function buildWhatsAppMessage({
-  company,
-  week,
-  userName,
-  userSector,
-  userPhone,
-  details,
-  dishesById,
-}) {
-  const lines = [
-    `*Pedidos Logística y Gastronomía*`,
-    `Empresa: ${company?.code || ''} — ${company?.name || ''}`,
-  ]
-  if (week) {
-    lines.push(`Semana: ${weekRangeText(week)}`)
-  }
-  lines.push(
-    `Solicitante: ${userName}`,
-    `Sector: ${userSector}`,
-    `Tel: ${userPhone}`,
-    ``,
-  )
-
-  for (const day of DAYS) {
-    const dayDetails = details[day.id]
-    const dayTotal = countDayMeals(dayDetails)
-    if (!dayTotal) continue
-
-    lines.push(`*${day.label}* (${dayTotal} viandas)`)
-
-    for (const slot of ['lunch', 'dinner']) {
-      const slotMap = dayDetails?.[slot] || {}
-      const entries = Object.entries(slotMap).filter(([, n]) => Number(n) > 0)
-      if (!entries.length) continue
-
-      lines.push(`  ${MEAL_SLOTS[slot].label}:`)
-      for (const [dishId, count] of entries) {
-        const dishName = dishesById[dishId]?.name || dishId
-        lines.push(`  • ${count}x ${dishName}`)
-      }
-      const note = dayDetails?.notes?.[slot]
-      if (note?.trim()) {
-        lines.push(`  Obs: ${note.trim()}`)
-      }
-    }
-    lines.push('')
-  }
-
-  lines.push(`*Total: ${countTotalMeals(details)} viandas*`)
-  return lines.join('\n')
-}
-
-export function buildWhatsAppUrl(message, phone = '') {
-  const text = encodeURIComponent(message)
-  const digits = phone.replace(/\D/g, '')
-  if (digits) {
-    return `https://wa.me/${digits}?text=${text}`
-  }
-  return `https://wa.me/?text=${text}`
 }
 
 /**
@@ -181,17 +105,146 @@ export function exportKitchenCsv(consolidated, dishesById, companyLabel) {
     }
   }
 
+  downloadCsv(rows, `pedidos-lg-cocina-${new Date().toISOString().slice(0, 10)}.csv`)
+}
+
+/** Descarga CSV UTF-8 (abre bien en Excel) */
+export function downloadCsv(rows, filename) {
   const csv = rows
     .map((row) =>
-      row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','),
+      row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(';'),
     )
-    .join('\n')
+    .join('\r\n')
 
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
+  const blob = new Blob(['\ufeff' + csv], {
+    type: 'text/csv;charset=utf-8;',
+  })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `pedidos-lg-cocina-${new Date().toISOString().slice(0, 10)}.csv`
+  a.download = filename
   a.click()
   URL.revokeObjectURL(url)
+}
+
+function cantidadYPlato(count, dishName) {
+  return `${count} ${dishName}`.trim()
+}
+
+export function exportConsolidatedExcel(detailRows) {
+  const rows = [
+    [
+      'Empresa',
+      'Quién pidió',
+      'Sector',
+      'Teléfono',
+      'Día',
+      'Servicio',
+      'Cantidad y plato',
+      'Cantidad',
+      'Plato',
+      'Período',
+      'Cargado',
+    ],
+  ]
+
+  for (const row of detailRows) {
+    rows.push([
+      row.companyCode,
+      row.userName,
+      row.userSector || '',
+      row.userPhone || '',
+      row.dayLabel,
+      row.slotLabel,
+      cantidadYPlato(row.count, row.dishName),
+      String(row.count),
+      row.dishName,
+      row.periodLabel || '',
+      row.createdAtLabel || '',
+    ])
+  }
+
+  downloadCsv(
+    rows,
+    `consolidado-pedidos-${new Date().toISOString().slice(0, 10)}.csv`,
+  )
+}
+
+/** Export Menú del día: hoja de totales + hoja de registros, ambos en columnas */
+export function exportDayMenuExcel({ dateLabel, dateYmd, menuTotals, detailRows }) {
+  const stamp = dateYmd || new Date().toISOString().slice(0, 10)
+  const fecha = dateLabel || stamp
+
+  // Archivo 1 mentalmente: todo en un CSV ordenado por bloques de tablas limpias
+  const rows = [
+    ['Fecha', fecha],
+    [],
+    ['TOTALES A PREPARAR'],
+    ['Cantidad y plato', 'Cantidad', 'Plato'],
+  ]
+
+  for (const item of menuTotals) {
+    rows.push([
+      cantidadYPlato(item.count, item.name),
+      String(item.count),
+      item.name,
+    ])
+  }
+
+  const mealsTotal = menuTotals.reduce((s, i) => s + i.count, 0)
+  rows.push([
+    cantidadYPlato(mealsTotal, 'viandas (total)'),
+    String(mealsTotal),
+    'TOTAL',
+  ])
+
+  rows.push([])
+  rows.push(['REGISTROS DEL DÍA'])
+  rows.push([
+    'Empresa',
+    'Quién pidió',
+    'Sector',
+    'Teléfono',
+    'Servicio',
+    'Cantidad y plato',
+    'Cantidad',
+    'Plato',
+    'Cargado',
+  ])
+
+  for (const row of detailRows) {
+    rows.push([
+      row.companyCode,
+      row.userName,
+      row.userSector || '',
+      row.userPhone || '',
+      row.slotLabel,
+      cantidadYPlato(row.count, row.dishName),
+      String(row.count),
+      row.dishName,
+      row.createdAtLabel || '',
+    ])
+  }
+
+  downloadCsv(rows, `menu-del-dia-${stamp}.csv`)
+}
+
+export function aggregateMenuTotals(detailRows) {
+  const map = new Map()
+  for (const row of detailRows) {
+    const prev = map.get(row.dishId)
+    if (prev) {
+      prev.count += row.count
+    } else {
+      map.set(row.dishId, {
+        dishId: row.dishId,
+        name: row.dishName,
+        count: row.count,
+      })
+    }
+  }
+  return [...map.values()].sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count
+    return a.name.localeCompare(b.name, 'es')
+  })
 }

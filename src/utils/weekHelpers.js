@@ -13,6 +13,22 @@ const LONG_FMT = new Intl.DateTimeFormat('es-AR', {
   timeZone: 'UTC',
 })
 
+const DATETIME_FMT = new Intl.DateTimeFormat('es-AR', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+/** Fecha y hora local de un ISO (ej. carga del pedido) */
+export function formatDateTime(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return DATETIME_FMT.format(d)
+}
+
 /** YYYY-MM-DD en UTC calendario */
 export function toDateInputValue(date = new Date()) {
   const d = new Date(date)
@@ -80,4 +96,31 @@ export function validateWeekRange(startDate, endDate) {
     return 'La fecha hasta debe ser posterior o igual a la fecha desde'
   }
   return ''
+}
+
+/** JS getDay() 0=dom … 6=sáb → ids del catálogo */
+const DAY_ID_FROM_JS = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab']
+
+export function dayIdFromYmd(ymd) {
+  if (!ymd) return null
+  return DAY_ID_FROM_JS[parseYmd(ymd).getDay()] ?? null
+}
+
+const TITLE_DATE_FMT = new Intl.DateTimeFormat('es-AR', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'numeric',
+  year: 'numeric',
+})
+
+/** Ej: "viernes 7/8/2026" */
+export function formatYmdTitle(ymd) {
+  if (!ymd) return '—'
+  const raw = TITLE_DATE_FMT.format(parseYmd(ymd))
+  return raw.charAt(0).toUpperCase() + raw.slice(1)
+}
+
+export function ymdInRange(ymd, startDate, endDate) {
+  if (!ymd || !startDate || !endDate) return false
+  return ymd >= startDate && ymd <= endDate
 }

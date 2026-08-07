@@ -14,13 +14,11 @@ export const MEAL_SLOTS = {
   lunch: {
     key: 'lunch',
     label: 'Almuerzo',
-    schedule: '12:30 a 13:30 hs',
     tone: 'lunch',
   },
   dinner: {
     key: 'dinner',
     label: 'Cena',
-    schedule: '20:30 a 21:30 hs',
     tone: 'dinner',
   },
 }

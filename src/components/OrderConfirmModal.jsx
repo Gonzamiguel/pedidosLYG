@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { CheckCircle2, Loader2, MessageCircle, Send, X } from 'lucide-react'
+import { CheckCircle2, Loader2, Send, X } from 'lucide-react'
 import { DAYS, MEAL_SLOTS } from '../data/constants'
-import {
-  buildWhatsAppMessage,
-  buildWhatsAppUrl,
-  countDayMeals,
-  countTotalMeals,
-} from '../utils/orderHelpers'
+import { countDayMeals, countTotalMeals } from '../utils/orderHelpers'
 import { weekRangeText } from '../utils/weekHelpers'
 
 export default function OrderConfirmModal({
@@ -57,16 +52,6 @@ export default function OrderConfirmModal({
 
   if (!open) return null
 
-  const message = buildWhatsAppMessage({
-    company,
-    week,
-    userName: client.userName,
-    userSector: client.userSector,
-    userPhone: client.userPhone,
-    details,
-    dishesById,
-  })
-
   const markSuccess = () => {
     setDone(true)
     setShowSuccess(true)
@@ -85,27 +70,8 @@ export default function OrderConfirmModal({
     }
   }
 
-  const handleWhatsApp = async () => {
-    if (!done) {
-      try {
-        setSubmitting(true)
-        setError('')
-        await onSubmit()
-        markSuccess()
-      } catch (err) {
-        setError(err.message || 'No se pudo guardar el pedido')
-        setSubmitting(false)
-        return
-      } finally {
-        setSubmitting(false)
-      }
-    }
-    window.open(buildWhatsAppUrl(message), '_blank', 'noopener,noreferrer')
-  }
-
   return createPortal(
     <div className="fixed inset-0 z-[100]">
-      {/* Backdrop */}
       <button
         type="button"
         aria-label="Cerrar"
@@ -113,7 +79,6 @@ export default function OrderConfirmModal({
         onClick={onClose}
       />
 
-      {/* Sheet / dialog */}
       <div className="pointer-events-none absolute inset-0 flex items-end justify-center sm:items-center sm:p-4">
         <div
           role="dialog"
@@ -135,11 +100,6 @@ export default function OrderConfirmModal({
                 <p className="mt-0.5 text-sm text-slate-500">
                   {total} viandas · {company?.code} · {client.userName}
                 </p>
-                {week && (
-                  <p className="mt-0.5 text-xs font-medium text-slate-600">
-                    {weekRangeText(week)}
-                  </p>
-                )}
               </div>
               <button
                 type="button"
@@ -162,7 +122,7 @@ export default function OrderConfirmModal({
                   Pedido enviado con éxito
                 </p>
                 <p className="text-sm text-slate-500">
-                  Ya podés cerrar o compartirlo por WhatsApp.
+                  Ya podés cerrar esta ventana.
                 </p>
               </div>
             ) : (
@@ -206,8 +166,8 @@ export default function OrderConfirmModal({
                             <p
                               className={`text-xs font-bold uppercase tracking-wide ${
                                 slot === 'lunch'
-                                  ? 'text-amber-700'
-                                  : 'text-indigo-700'
+                                  ? 'text-bordo-700'
+                                  : 'text-lg-700'
                               }`}
                             >
                               {MEAL_SLOTS[slot].label}
@@ -220,11 +180,6 @@ export default function OrderConfirmModal({
                                 </li>
                               ))}
                             </ul>
-                            {dayDetails?.notes?.[slot]?.trim() && (
-                              <p className="mt-1 text-xs italic text-slate-500">
-                                Obs: {dayDetails.notes[slot]}
-                              </p>
-                            )}
                           </div>
                         )
                       })}
@@ -242,12 +197,12 @@ export default function OrderConfirmModal({
           </div>
 
           <div className="safe-pb shrink-0 flex flex-col gap-2 border-t border-slate-100 bg-white px-5 py-4">
-            {!done && (
+            {!done ? (
               <button
                 type="button"
                 disabled={submitting || total === 0}
                 onClick={handleSubmit}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-slate-800 px-4 text-sm font-semibold text-white transition hover:bg-slate-900 disabled:opacity-50"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-bordo-700 px-4 text-sm font-semibold text-white transition hover:bg-bordo-800 disabled:opacity-50"
               >
                 {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -256,17 +211,7 @@ export default function OrderConfirmModal({
                 )}
                 Enviar pedido
               </button>
-            )}
-            <button
-              type="button"
-              disabled={submitting || total === 0}
-              onClick={handleWhatsApp}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-50"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Enviar por WhatsApp
-            </button>
-            {done && (
+            ) : (
               <button
                 type="button"
                 onClick={onClose}
@@ -279,7 +224,6 @@ export default function OrderConfirmModal({
         </div>
       </div>
 
-      {/* Push / toast de éxito */}
       {showSuccess && (
         <div
           className="pointer-events-none absolute inset-x-0 top-0 z-[110] flex justify-center px-3 pt-[max(0.75rem,env(safe-area-inset-top))]"

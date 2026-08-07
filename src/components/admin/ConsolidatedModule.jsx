@@ -1,7 +1,15 @@
-import { useMemo, useState } from 'react'
-import { ClipboardList } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Download,
+} from 'lucide-react'
 import { DAYS, DAY_IDS, MEAL_SLOTS } from '../../data/constants'
-import { weekRangeText } from '../../utils/weekHelpers'
+import { exportConsolidatedExcel } from '../../utils/orderHelpers'
+import { formatDateTime, weekRangeText } from '../../utils/weekHelpers'
+
+const PAGE_SIZE = 10
 
 const field =
   'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200'
@@ -31,10 +39,11 @@ export default function ConsolidatedModule({
 }) {
   const currentYear = String(new Date().getFullYear())
   const [companyFilter, setCompanyFilter] = useState('all')
-  const [slotFilter, setSlotFilter] = useState('all') // all | lunch | dinner
+  const [slotFilter, setSlotFilter] = useState('all')
   const [dayFilter, setDayFilter] = useState('all')
   const [monthFilter, setMonthFilter] = useState('all')
   const [yearFilter, setYearFilter] = useState(currentYear)
+  const [page, setPage] = useState(1)
 
   const years = useMemo(() => {
     const set = new Set([currentYear])
@@ -70,11 +79,19 @@ export default function ConsolidatedModule({
     })
   }, [orders, companyFilter, slotFilter, dayFilter, monthFilter, yearFilter])
 
-  /** Filas: persona + día + turno + plato + cantidad */
   const rows = useMemo(() => {
     const list = []
     for (const order of filteredOrders) {
       const company = companiesById[order.companyId]
+      const periodLabel = order.weekStart
+        ? weekRangeText({
+            startDate: order.weekStart,
+            endDate: order.weekEnd,
+          })
+        : formsById[order.formId]
+          ? weekRangeText(formsById[order.formId])
+          : '—'
+
       for (const day of DAYS) {
         if (dayFilter !== 'all' && day.id !== dayFilter) continue
         const dayDetails = order.details?.[day.id]
@@ -88,8 +105,8 @@ export default function ConsolidatedModule({
           for (const [dishId, count] of entries) {
             list.push({
               key: `${order.id}-${day.id}-${slot}-${dishId}`,
-              orderId: order.id,
               companyCode: company?.code || order.companyId,
+              companyName: company?.name || '',
               userName: order.userName,
               userSector: order.userSector,
               userPhone: order.userPhone,
@@ -100,10 +117,9 @@ export default function ConsolidatedModule({
               dishId,
               dishName: dishesById[dishId]?.name || dishId,
               count: Number(count),
-              weekStart: order.weekStart,
-              weekEnd: order.weekEnd,
-              formId: order.formId,
+              periodLabel,
               createdAt: order.createdAt,
+              createdAtLabel: formatDateTime(order.createdAt),
             })
           }
         }
@@ -122,6 +138,7 @@ export default function ConsolidatedModule({
     slotFilter,
     companiesById,
     dishesById,
+    formsById,
   ])
 
   const totals = useMemo(() => {
@@ -132,19 +149,48 @@ export default function ConsolidatedModule({
     }
   }, [filteredOrders, rows])
 
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
+
+  useEffect(() => {
+    setPage(1)
+  }, [companyFilter, slotFilter, dayFilter, monthFilter, yearFilter])
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages)
+  }, [page, totalPages])
+
+  const pageRows = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return rows.slice(start, start + PAGE_SIZE)
+  }, [rows, page])
+
+  const rangeStart = rows.length ? (page - 1) * PAGE_SIZE + 1 : 0
+  const rangeEnd = Math.min(page * PAGE_SIZE, rows.length)
+
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
-          <ClipboardList className="h-5 w-5 text-slate-500" />
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900">
-              Consolidado de pedidos
-            </h3>
-            <p className="text-sm text-slate-500">
-              Filtrá y mirá quién pidió qué plato, por día y turno.
-            </p>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-2">
+            <ClipboardList className="h-5 w-5 shrink-0 text-slate-500" />
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">
+                Consolidado completo
+              </h3>
+              <p className="text-sm text-slate-500">
+                Todos los pedidos filtrados, con export a Excel.
+              </p>
+            </div>
           </div>
+          <button
+            type="button"
+            disabled={!rows.length}
+            onClick={() => exportConsolidatedExcel(rows)}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-bordo-700 px-4 text-sm font-semibold text-white hover:bg-bordo-800 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Download className="h-4 w-4" />
+            Exportar Excel
+          </button>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -165,9 +211,7 @@ export default function ConsolidatedModule({
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">
-              Almuerzo / Cena
-            </span>
+            <span className="text-sm font-medium text-slate-700">Servicio</span>
             <select
               className={field}
               value={slotFilter}
@@ -240,65 +284,74 @@ export default function ConsolidatedModule({
             No hay pedidos con estos filtros.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-stone-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">Empresa</th>
-                  <th className="px-4 py-3">Quién pidió</th>
-                  <th className="px-4 py-3">Día</th>
-                  <th className="px-4 py-3">Turno</th>
-                  <th className="px-4 py-3">Plato</th>
-                  <th className="px-4 py-3 text-right">Cant.</th>
-                  <th className="px-4 py-3">Período</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {rows.map((row) => (
-                  <tr key={row.key} className="hover:bg-stone-50/80">
-                    <td className="px-4 py-3 font-medium text-slate-800">
-                      {row.companyCode}
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-slate-900">
-                        {row.userName}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {row.userSector}
-                        {row.userPhone ? ` · ${row.userPhone}` : ''}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">{row.dayLabel}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
-                          row.slot === 'lunch'
-                            ? 'bg-amber-50 text-amber-800'
-                            : 'bg-indigo-50 text-indigo-800'
-                        }`}
-                      >
-                        {row.slotLabel}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-800">{row.dishName}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-900">
-                      {row.count}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-500">
-                      {row.weekStart
-                        ? weekRangeText({
-                            startDate: row.weekStart,
-                            endDate: row.weekEnd,
-                          })
-                        : formsById[row.formId]
-                          ? weekRangeText(formsById[row.formId])
-                          : '—'}
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-stone-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3">Empresa</th>
+                    <th className="px-4 py-3">Quién pidió</th>
+                    <th className="px-4 py-3">Día</th>
+                    <th className="px-4 py-3">Servicio</th>
+                    <th className="px-4 py-3">Plato</th>
+                    <th className="px-4 py-3 text-right">Cant.</th>
+                    <th className="px-4 py-3">Período</th>
+                    <th className="px-4 py-3">Cargado</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {pageRows.map((row) => (
+                    <tr key={row.key} className="hover:bg-stone-50/80">
+                      <td className="px-4 py-3 font-medium text-slate-800">
+                        {row.companyCode}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-slate-900">
+                          {row.userName}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {row.userSector}
+                          {row.userPhone ? ` · ${row.userPhone}` : ''}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">{row.dayLabel}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
+                            row.slot === 'lunch'
+                              ? 'bg-bordo-50 text-bordo-800'
+                              : 'bg-lg-100 text-lg-800'
+                          }`}
+                        >
+                          {row.slotLabel}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-800">{row.dishName}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                        {row.count}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-500">
+                        {row.periodLabel}
+                      </td>
+                      <td className="px-4 py-3 text-xs tabular-nums text-slate-500">
+                        {row.createdAtLabel}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <PaginationBar
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              total={rows.length}
+              page={page}
+              totalPages={totalPages}
+              onPrev={() => setPage((p) => Math.max(1, p - 1))}
+              onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+            />
+          </>
         )}
       </section>
     </div>
@@ -312,6 +365,47 @@ function Metric({ label, value }) {
         {label}
       </p>
       <p className="mt-1 text-3xl font-semibold text-slate-900">{value}</p>
+    </div>
+  )
+}
+
+function PaginationBar({
+  rangeStart,
+  rangeEnd,
+  total,
+  page,
+  totalPages,
+  onPrev,
+  onNext,
+}) {
+  return (
+    <div className="flex flex-col gap-3 border-t border-stone-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-slate-500">
+        Mostrando {rangeStart}–{rangeEnd} de {total}
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onPrev}
+          disabled={page <= 1}
+          className="inline-flex h-10 items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Anterior
+        </button>
+        <span className="min-w-[7rem] text-center text-sm font-medium text-slate-700">
+          Página {page} de {totalPages}
+        </span>
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={page >= totalPages}
+          className="inline-flex h-10 items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Siguiente
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   )
 }

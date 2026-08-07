@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 
 const field =
-  'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
+  'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-bordo-500 focus:ring-2 focus:ring-bordo-200'
 
 export default function DishesTab({ dishes, onCreate, onDelete }) {
   const [name, setName] = useState('')
@@ -61,7 +61,7 @@ export default function DishesTab({ dishes, onCreate, onDelete }) {
         <button
           type="submit"
           disabled={busy}
-          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-bordo-600 px-4 text-sm font-semibold text-white hover:bg-bordo-700 disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
           Agregar plato
