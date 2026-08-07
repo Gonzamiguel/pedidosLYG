@@ -4,7 +4,7 @@ import {
   ChevronRight,
   UtensilsCrossed,
 } from 'lucide-react'
-import { DAYS, MEAL_SLOTS } from '../../data/constants'
+import { MEAL_SLOTS } from '../../data/constants'
 import { aggregateMenuTotals } from '../../utils/orderHelpers'
 import {
   dayIdFromYmd,
@@ -40,7 +40,6 @@ export default function DayMenuModule({
   const [page, setPage] = useState(1)
 
   const dayId = dayIdFromYmd(date)
-  const dayMeta = DAYS.find((d) => d.id === dayId)
 
   const rows = useMemo(() => {
     if (!dayId) return []
