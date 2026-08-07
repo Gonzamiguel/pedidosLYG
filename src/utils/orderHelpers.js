@@ -32,20 +32,6 @@ export function setDishCount(details, dayId, slot, dishId, count) {
   return next
 }
 
-export function setDayNote(details, dayId, slot, note) {
-  const next = structuredClone(details)
-  if (!next[dayId]) {
-    next[dayId] = {
-      lunch: {},
-      dinner: {},
-      notes: { lunch: '', dinner: '' },
-    }
-  }
-  if (!next[dayId].notes) next[dayId].notes = { lunch: '', dinner: '' }
-  next[dayId].notes[slot] = note
-  return next
-}
-
 export function isPastDeadline(date = new Date()) {
   const limit = new Date(date)
   limit.setHours(ORDER_DEADLINE.hour, ORDER_DEADLINE.minute, 0, 0)
@@ -91,10 +77,6 @@ export function buildWhatsAppMessage({
       for (const [dishId, count] of entries) {
         const dishName = dishesById[dishId]?.name || dishId
         lines.push(`  • ${count}x ${dishName}`)
-      }
-      const note = dayDetails?.notes?.[slot]
-      if (note?.trim()) {
-        lines.push(`  Obs: ${note.trim()}`)
       }
     }
     lines.push('')

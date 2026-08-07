@@ -215,11 +215,6 @@ export default function OrderConfirmModal({
                                 </li>
                               ))}
                             </ul>
-                            {dayDetails?.notes?.[slot]?.trim() && (
-                              <p className="mt-1 text-xs italic text-slate-500">
-                                Obs: {dayDetails.notes[slot]}
-                              </p>
-                            )}
                           </div>
                         )
                       })}

@@ -12,7 +12,6 @@ import { useCatalog } from '../hooks/useCatalog'
 import { weekLabel, weekRangeText } from '../utils/weekHelpers'
 import {
   countTotalMeals,
-  setDayNote,
   setDishCount,
 } from '../utils/orderHelpers'
 
@@ -203,14 +202,10 @@ export default function OrderPage() {
               dishIds={dayMenu.lunch}
               dishesById={catalog.dishesById}
               quantities={details[activeDay]?.lunch}
-              note={details[activeDay]?.notes?.lunch || ''}
               onQuantityChange={(dishId, count) =>
                 setDetails((prev) =>
                   setDishCount(prev, activeDay, 'lunch', dishId, count),
                 )
-              }
-              onNoteChange={(note) =>
-                setDetails((prev) => setDayNote(prev, activeDay, 'lunch', note))
               }
             />
             <MenuCard
@@ -218,15 +213,9 @@ export default function OrderPage() {
               dishIds={dayMenu.dinner}
               dishesById={catalog.dishesById}
               quantities={details[activeDay]?.dinner}
-              note={details[activeDay]?.notes?.dinner || ''}
               onQuantityChange={(dishId, count) =>
                 setDetails((prev) =>
                   setDishCount(prev, activeDay, 'dinner', dishId, count),
-                )
-              }
-              onNoteChange={(note) =>
-                setDetails((prev) =>
-                  setDayNote(prev, activeDay, 'dinner', note),
                 )
               }
             />
