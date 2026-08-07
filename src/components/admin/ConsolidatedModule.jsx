@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { DAYS, DAY_IDS, MEAL_SLOTS } from '../../data/constants'
 import { exportConsolidatedExcel } from '../../utils/orderHelpers'
-import { weekRangeText } from '../../utils/weekHelpers'
+import { formatDateTime, weekRangeText } from '../../utils/weekHelpers'
 
 const PAGE_SIZE = 10
 
@@ -118,6 +118,8 @@ export default function ConsolidatedModule({
               dishName: dishesById[dishId]?.name || dishId,
               count: Number(count),
               periodLabel,
+              createdAt: order.createdAt,
+              createdAtLabel: formatDateTime(order.createdAt),
             })
           }
         }
@@ -294,6 +296,7 @@ export default function ConsolidatedModule({
                     <th className="px-4 py-3">Plato</th>
                     <th className="px-4 py-3 text-right">Cant.</th>
                     <th className="px-4 py-3">Período</th>
+                    <th className="px-4 py-3">Cargado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
@@ -329,6 +332,9 @@ export default function ConsolidatedModule({
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-500">
                         {row.periodLabel}
+                      </td>
+                      <td className="px-4 py-3 text-xs tabular-nums text-slate-500">
+                        {row.createdAtLabel}
                       </td>
                     </tr>
                   ))}

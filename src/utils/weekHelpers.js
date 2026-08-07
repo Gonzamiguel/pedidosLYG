@@ -13,6 +13,22 @@ const LONG_FMT = new Intl.DateTimeFormat('es-AR', {
   timeZone: 'UTC',
 })
 
+const DATETIME_FMT = new Intl.DateTimeFormat('es-AR', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+/** Fecha y hora local de un ISO (ej. carga del pedido) */
+export function formatDateTime(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return DATETIME_FMT.format(d)
+}
+
 /** YYYY-MM-DD en UTC calendario */
 export function toDateInputValue(date = new Date()) {
   const d = new Date(date)

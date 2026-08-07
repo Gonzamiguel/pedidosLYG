@@ -8,6 +8,7 @@ import { MEAL_SLOTS } from '../../data/constants'
 import { aggregateMenuTotals } from '../../utils/orderHelpers'
 import {
   dayIdFromYmd,
+  formatDateTime,
   formatYmd,
   formatYmdTitle,
   toDateInputValue,
@@ -74,6 +75,7 @@ export default function DayMenuModule({
             dishId,
             dishName: dishesById[dishId]?.name || dishId,
             count: Number(count),
+            createdAtLabel: formatDateTime(order.createdAt),
           })
         }
       }
@@ -249,6 +251,7 @@ export default function DayMenuModule({
                     <th className="px-4 py-3">Servicio</th>
                     <th className="px-4 py-3">Plato</th>
                     <th className="px-4 py-3 text-right">Cant.</th>
+                    <th className="px-4 py-3">Cargado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
@@ -280,6 +283,9 @@ export default function DayMenuModule({
                       <td className="px-4 py-3 text-slate-800">{row.dishName}</td>
                       <td className="px-4 py-3 text-right font-semibold text-slate-900">
                         {row.count}
+                      </td>
+                      <td className="px-4 py-3 text-xs tabular-nums text-slate-500">
+                        {row.createdAtLabel}
                       </td>
                     </tr>
                   ))}

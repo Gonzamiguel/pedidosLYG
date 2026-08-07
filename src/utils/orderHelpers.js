@@ -213,6 +213,7 @@ export function exportConsolidatedExcel(detailRows) {
       'Plato',
       'Cantidad',
       'Período',
+      'Cargado',
     ],
   ]
 
@@ -227,6 +228,7 @@ export function exportConsolidatedExcel(detailRows) {
       row.dishName,
       String(row.count),
       row.periodLabel || '',
+      row.createdAtLabel || '',
     ])
   }
 
