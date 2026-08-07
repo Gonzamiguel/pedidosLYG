@@ -181,9 +181,14 @@ export function exportKitchenCsv(consolidated, dishesById, companyLabel) {
     }
   }
 
+  downloadCsv(rows, `pedidos-lg-cocina-${new Date().toISOString().slice(0, 10)}.csv`)
+}
+
+/** Descarga CSV UTF-8 (abre bien en Excel) */
+export function downloadCsv(rows, filename) {
   const csv = rows
     .map((row) =>
-      row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','),
+      row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','),
     )
     .join('\n')
 
@@ -191,7 +196,62 @@ export function exportKitchenCsv(consolidated, dishesById, companyLabel) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `pedidos-lg-cocina-${new Date().toISOString().slice(0, 10)}.csv`
+  a.download = filename
   a.click()
   URL.revokeObjectURL(url)
+}
+
+export function exportConsolidatedExcel(detailRows) {
+  const rows = [
+    [
+      'Empresa',
+      'Quién pidió',
+      'Sector',
+      'Teléfono',
+      'Día',
+      'Servicio',
+      'Plato',
+      'Cantidad',
+      'Período',
+    ],
+  ]
+
+  for (const row of detailRows) {
+    rows.push([
+      row.companyCode,
+      row.userName,
+      row.userSector || '',
+      row.userPhone || '',
+      row.dayLabel,
+      row.slotLabel,
+      row.dishName,
+      String(row.count),
+      row.periodLabel || '',
+    ])
+  }
+
+  downloadCsv(
+    rows,
+    `consolidado-pedidos-${new Date().toISOString().slice(0, 10)}.csv`,
+  )
+}
+
+export function aggregateMenuTotals(detailRows) {
+  const map = new Map()
+  for (const row of detailRows) {
+    const prev = map.get(row.dishId)
+    if (prev) {
+      prev.count += row.count
+    } else {
+      map.set(row.dishId, {
+        dishId: row.dishId,
+        name: row.dishName,
+        count: row.count,
+      })
+    }
+  }
+  return [...map.values()].sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count
+    return a.name.localeCompare(b.name, 'es')
+  })
 }

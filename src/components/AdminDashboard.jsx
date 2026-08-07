@@ -7,6 +7,7 @@ import {
   Lock,
   LogOut,
   Settings,
+  UtensilsCrossed,
 } from 'lucide-react'
 import { ADMIN_DEMO_KEY, isFirebaseConfigured } from '../firebase/config'
 import {
@@ -17,14 +18,21 @@ import {
 import { APP_NAME } from '../data/brand'
 import { getDataMode } from '../firebase/services'
 import ConsolidatedModule from './admin/ConsolidatedModule'
+import DayMenuModule from './admin/DayMenuModule'
 import FormsModule from './admin/FormsModule'
 import ConfigModule from './admin/ConfigModule'
 
 const MODULES = [
   {
+    id: 'day-menu',
+    label: 'Menú del día',
+    description: 'Totales a preparar y quién pidió',
+    icon: UtensilsCrossed,
+  },
+  {
     id: 'consolidated',
-    label: 'Consolidado de pedidos',
-    description: 'Quién pidió qué, con filtros',
+    label: 'Consolidado',
+    description: 'Todos los pedidos + export Excel',
     icon: ClipboardList,
   },
   {
@@ -45,7 +53,7 @@ const inputClass =
   'mt-1.5 w-full min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200'
 
 export default function AdminDashboard({ onBack, catalog }) {
-  const [module, setModule] = useState('forms')
+  const [module, setModule] = useState('day-menu')
   const [admin, setAdmin] = useState(null)
   const [demoAuthed, setDemoAuthed] = useState(false)
   const [checking, setChecking] = useState(isFirebaseConfigured)
@@ -292,6 +300,15 @@ export default function AdminDashboard({ onBack, catalog }) {
 
         <main className="flex-1 overflow-y-auto px-8 py-6">
           <div className="mx-auto max-w-6xl">
+            {module === 'day-menu' && (
+              <DayMenuModule
+                orders={catalog.orders}
+                companies={catalog.companies}
+                companiesById={catalog.companiesById}
+                formsById={catalog.formsById}
+                dishesById={catalog.dishesById}
+              />
+            )}
             {module === 'consolidated' && (
               <ConsolidatedModule
                 orders={catalog.orders}

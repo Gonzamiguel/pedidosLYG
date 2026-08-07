@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight, ClipboardList, UtensilsCrossed } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Download,
+} from 'lucide-react'
 import { DAYS, DAY_IDS, MEAL_SLOTS } from '../../data/constants'
+import { exportConsolidatedExcel } from '../../utils/orderHelpers'
 import { weekRangeText } from '../../utils/weekHelpers'
 
 const PAGE_SIZE = 10
@@ -33,7 +39,7 @@ export default function ConsolidatedModule({
 }) {
   const currentYear = String(new Date().getFullYear())
   const [companyFilter, setCompanyFilter] = useState('all')
-  const [slotFilter, setSlotFilter] = useState('all') // all | lunch | dinner
+  const [slotFilter, setSlotFilter] = useState('all')
   const [dayFilter, setDayFilter] = useState('all')
   const [monthFilter, setMonthFilter] = useState('all')
   const [yearFilter, setYearFilter] = useState(currentYear)
@@ -73,11 +79,19 @@ export default function ConsolidatedModule({
     })
   }, [orders, companyFilter, slotFilter, dayFilter, monthFilter, yearFilter])
 
-  /** Filas: persona + día + turno + plato + cantidad */
   const rows = useMemo(() => {
     const list = []
     for (const order of filteredOrders) {
       const company = companiesById[order.companyId]
+      const periodLabel = order.weekStart
+        ? weekRangeText({
+            startDate: order.weekStart,
+            endDate: order.weekEnd,
+          })
+        : formsById[order.formId]
+          ? weekRangeText(formsById[order.formId])
+          : '—'
+
       for (const day of DAYS) {
         if (dayFilter !== 'all' && day.id !== dayFilter) continue
         const dayDetails = order.details?.[day.id]
@@ -91,8 +105,8 @@ export default function ConsolidatedModule({
           for (const [dishId, count] of entries) {
             list.push({
               key: `${order.id}-${day.id}-${slot}-${dishId}`,
-              orderId: order.id,
               companyCode: company?.code || order.companyId,
+              companyName: company?.name || '',
               userName: order.userName,
               userSector: order.userSector,
               userPhone: order.userPhone,
@@ -103,10 +117,7 @@ export default function ConsolidatedModule({
               dishId,
               dishName: dishesById[dishId]?.name || dishId,
               count: Number(count),
-              weekStart: order.weekStart,
-              weekEnd: order.weekEnd,
-              formId: order.formId,
-              createdAt: order.createdAt,
+              periodLabel,
             })
           }
         }
@@ -125,24 +136,8 @@ export default function ConsolidatedModule({
     slotFilter,
     companiesById,
     dishesById,
+    formsById,
   ])
-
-  /** Totales rápidos por plato para cocina */
-  const menuTotals = useMemo(() => {
-    const map = new Map()
-    for (const row of rows) {
-      const prev = map.get(row.dishId)
-      if (prev) {
-        prev.count += row.count
-      } else {
-        map.set(row.dishId, { dishId: row.dishId, name: row.dishName, count: row.count })
-      }
-    }
-    return [...map.values()].sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count
-      return a.name.localeCompare(b.name, 'es')
-    })
-  }, [rows])
 
   const totals = useMemo(() => {
     return {
@@ -173,16 +168,27 @@ export default function ConsolidatedModule({
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
-          <ClipboardList className="h-5 w-5 text-slate-500" />
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900">
-              Consolidado de pedidos
-            </h3>
-            <p className="text-sm text-slate-500">
-              Filtrá y mirá quién pidió qué plato, por día y turno.
-            </p>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-2">
+            <ClipboardList className="h-5 w-5 shrink-0 text-slate-500" />
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">
+                Consolidado completo
+              </h3>
+              <p className="text-sm text-slate-500">
+                Todos los pedidos filtrados, con export a Excel.
+              </p>
+            </div>
           </div>
+          <button
+            type="button"
+            disabled={!rows.length}
+            onClick={() => exportConsolidatedExcel(rows)}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-800 px-4 text-sm font-semibold text-white hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Download className="h-4 w-4" />
+            Exportar Excel
+          </button>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -203,9 +209,7 @@ export default function ConsolidatedModule({
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">
-              Almuerzo / Cena
-            </span>
+            <span className="text-sm font-medium text-slate-700">Servicio</span>
             <select
               className={field}
               value={slotFilter}
@@ -272,40 +276,6 @@ export default function ConsolidatedModule({
         <Metric label="Viandas" value={totals.meals} />
       </div>
 
-      <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
-          <UtensilsCrossed className="h-5 w-5 text-slate-500" />
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900">Menús</h3>
-            <p className="text-sm text-slate-500">
-              Cantidad total a preparar por plato, según los filtros.
-            </p>
-          </div>
-        </div>
-
-        {!menuTotals.length ? (
-          <p className="rounded-lg border border-dashed border-stone-300 px-4 py-8 text-center text-sm text-slate-500">
-            No hay platos con estos filtros.
-          </p>
-        ) : (
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {menuTotals.map((item) => (
-              <li
-                key={item.dishId}
-                className="flex items-baseline justify-between gap-3 border-b border-stone-100 px-1 py-2.5 last:border-b-0 sm:last:border-b"
-              >
-                <span className="min-w-0 truncate font-medium text-slate-800">
-                  {item.name}
-                </span>
-                <span className="shrink-0 text-xl font-semibold tabular-nums text-slate-900">
-                  {item.count}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
       <section className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
         {!rows.length ? (
           <p className="px-4 py-12 text-center text-sm text-slate-500">
@@ -320,7 +290,7 @@ export default function ConsolidatedModule({
                     <th className="px-4 py-3">Empresa</th>
                     <th className="px-4 py-3">Quién pidió</th>
                     <th className="px-4 py-3">Día</th>
-                    <th className="px-4 py-3">Turno</th>
+                    <th className="px-4 py-3">Servicio</th>
                     <th className="px-4 py-3">Plato</th>
                     <th className="px-4 py-3 text-right">Cant.</th>
                     <th className="px-4 py-3">Período</th>
@@ -358,14 +328,7 @@ export default function ConsolidatedModule({
                         {row.count}
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-500">
-                        {row.weekStart
-                          ? weekRangeText({
-                              startDate: row.weekStart,
-                              endDate: row.weekEnd,
-                            })
-                          : formsById[row.formId]
-                            ? weekRangeText(formsById[row.formId])
-                            : '—'}
+                        {row.periodLabel}
                       </td>
                     </tr>
                   ))}
@@ -373,34 +336,15 @@ export default function ConsolidatedModule({
               </table>
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-stone-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-slate-500">
-                Mostrando {rangeStart}–{rangeEnd} de {rows.length}
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                  className="inline-flex h-10 items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Anterior
-                </button>
-                <span className="min-w-[7rem] text-center text-sm font-medium text-slate-700">
-                  Página {page} de {totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page >= totalPages}
-                  className="inline-flex h-10 items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Siguiente
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+            <PaginationBar
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              total={rows.length}
+              page={page}
+              totalPages={totalPages}
+              onPrev={() => setPage((p) => Math.max(1, p - 1))}
+              onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+            />
           </>
         )}
       </section>
@@ -415,6 +359,47 @@ function Metric({ label, value }) {
         {label}
       </p>
       <p className="mt-1 text-3xl font-semibold text-slate-900">{value}</p>
+    </div>
+  )
+}
+
+function PaginationBar({
+  rangeStart,
+  rangeEnd,
+  total,
+  page,
+  totalPages,
+  onPrev,
+  onNext,
+}) {
+  return (
+    <div className="flex flex-col gap-3 border-t border-stone-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-slate-500">
+        Mostrando {rangeStart}–{rangeEnd} de {total}
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onPrev}
+          disabled={page <= 1}
+          className="inline-flex h-10 items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Anterior
+        </button>
+        <span className="min-w-[7rem] text-center text-sm font-medium text-slate-700">
+          Página {page} de {totalPages}
+        </span>
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={page >= totalPages}
+          className="inline-flex h-10 items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Siguiente
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   )
 }
