@@ -228,23 +228,44 @@ export function groupRowsByDeliveryPlace(detailRows) {
     }))
 }
 
-/** Export Menú del día: totales globales + por lugar + registros */
+/** Cards Almuerzo / Cena → dentro, por lugar */
+export function groupRowsBySlotAndPlace(detailRows) {
+  const slots = ['lunch', 'dinner']
+  return slots
+    .map((slot) => {
+      const slotRows = detailRows.filter((r) => r.slot === slot)
+      const byPlace = groupRowsByDeliveryPlace(slotRows)
+      return {
+        slot,
+        label: MEAL_SLOTS[slot].label,
+        meals: slotRows.reduce((s, r) => s + r.count, 0),
+        totals: aggregateMenuTotals(slotRows),
+        byPlace,
+      }
+    })
+    .filter((block) => block.meals > 0)
+}
+
+/** Export Menú del día: totales + por servicio/lugar + registros */
 export function exportDayMenuExcel({
   dateLabel,
   dateYmd,
   menuTotals,
   detailRows,
   byPlace = [],
+  bySlot = [],
 }) {
   const stamp = dateYmd || new Date().toISOString().slice(0, 10)
   const fecha = dateLabel || stamp
   const placeGroups =
     byPlace.length > 0 ? byPlace : groupRowsByDeliveryPlace(detailRows)
+  const slotGroups =
+    bySlot.length > 0 ? bySlot : groupRowsBySlotAndPlace(detailRows)
 
   const rows = [
-    ['Fecha', fecha],
+    ['Período', fecha],
     [],
-    ['TOTALES A PREPARAR (todos los lugares)'],
+    ['TOTALES A PREPARAR'],
     ['Cantidad y plato', 'Cantidad', 'Plato'],
   ]
 
@@ -263,22 +284,30 @@ export function exportDayMenuExcel({
     'TOTAL',
   ])
 
-  for (const group of placeGroups) {
+  for (const slotGroup of slotGroups) {
     rows.push([])
-    rows.push([`LUGAR: ${group.place}`])
-    rows.push(['Cantidad y plato', 'Cantidad', 'Plato'])
-    for (const item of group.totals) {
+    rows.push([slotGroup.label.toUpperCase()])
+    for (const placeGroup of slotGroup.byPlace) {
+      rows.push([`Enviar a: ${placeGroup.place}`])
+      rows.push(['Cantidad y plato', 'Cantidad', 'Plato'])
+      for (const item of placeGroup.totals) {
+        rows.push([
+          cantidadYPlato(item.count, item.name),
+          String(item.count),
+          item.name,
+        ])
+      }
       rows.push([
-        cantidadYPlato(item.count, item.name),
-        String(item.count),
-        item.name,
+        cantidadYPlato(placeGroup.meals, 'viandas'),
+        String(placeGroup.meals),
+        `Total a ${placeGroup.place}`,
       ])
     }
-    rows.push([
-      cantidadYPlato(group.meals, 'viandas'),
-      String(group.meals),
-      'Subtotal lugar',
-    ])
+  }
+
+  for (const group of placeGroups) {
+    rows.push([])
+    rows.push([`REGISTROS — ${group.place}`])
     rows.push([
       'Empresa',
       'Quién pidió',
