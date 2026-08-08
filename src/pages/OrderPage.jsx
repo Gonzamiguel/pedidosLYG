@@ -20,6 +20,7 @@ import { dayIdsInRange } from '../data/formHelpers'
 import { useCatalog } from '../hooks/useCatalog'
 import { weekLabel, weekRangeText } from '../utils/weekHelpers'
 import {
+  countAllSlotMeals,
   countTotalMeals,
   setDishCount,
 } from '../utils/orderHelpers'
@@ -27,10 +28,11 @@ import {
 const EMPTY_CLIENT = {
   companyId: '',
   userName: '',
-  userSector: '',
   userPhone: '',
-  deliveryPlaceId: '',
-  deliveryPlaceOther: '',
+  deliveryPlaceLunchId: '',
+  deliveryPlaceLunchOther: '',
+  deliveryPlaceDinnerId: '',
+  deliveryPlaceDinnerOther: '',
 }
 
 export default function OrderPage() {
@@ -76,32 +78,60 @@ export default function OrderPage() {
   )
 
   const total = useMemo(() => countTotalMeals(details), [details])
+  const lunchMeals = useMemo(
+    () => countAllSlotMeals(details, 'lunch'),
+    [details],
+  )
+  const dinnerMeals = useMemo(
+    () => countAllSlotMeals(details, 'dinner'),
+    [details],
+  )
   const dayMenu = form?.days?.[activeDay] || { lunch: [], dinner: [] }
 
-  const resolveDeliveryPlace = () => {
-    if (client.deliveryPlaceId === OTHER_DELIVERY_PLACE) {
-      return (client.deliveryPlaceOther || '').trim()
-    }
-    const place = catalog.deliveryPlaces.find(
-      (p) => p.id === client.deliveryPlaceId,
-    )
-    return (place?.name || client.userSector || '').trim()
+  const resolvePlace = (placeId, placeOther) => {
+    if (placeId === OTHER_DELIVERY_PLACE) return (placeOther || '').trim()
+    const place = catalog.deliveryPlaces.find((p) => p.id === placeId)
+    return (place?.name || '').trim()
   }
+
+  const lunchPlace = resolvePlace(
+    client.deliveryPlaceLunchId,
+    client.deliveryPlaceLunchOther,
+  )
+  const dinnerPlace = resolvePlace(
+    client.deliveryPlaceDinnerId,
+    client.deliveryPlaceDinnerOther,
+  )
 
   const validateClient = () => {
     const next = {}
     if (!form || !company) next.companyId = 'Formulario no válido'
     if (form?.status === 'closed') next.week = 'Formulario cerrado'
     if (!client.userName.trim()) next.userName = 'Ingresá tu nombre'
-    if (!client.deliveryPlaceId) {
-      next.userSector = 'Seleccioná el lugar de entrega'
-    } else if (
-      client.deliveryPlaceId === OTHER_DELIVERY_PLACE &&
-      !client.deliveryPlaceOther.trim()
-    ) {
-      next.userSector = 'Indicá dónde querés la entrega'
-    }
     if (!client.userPhone.trim()) next.userPhone = 'Ingresá un teléfono'
+
+    if (lunchMeals > 0) {
+      if (!client.deliveryPlaceLunchId) {
+        next.deliveryPlaceLunch = 'Seleccioná dónde entregamos el almuerzo'
+      } else if (
+        client.deliveryPlaceLunchId === OTHER_DELIVERY_PLACE &&
+        !client.deliveryPlaceLunchOther.trim()
+      ) {
+        next.deliveryPlaceLunch = 'Indicá el lugar del almuerzo'
+      }
+    }
+
+    if (dinnerMeals > 0) {
+      if (!client.deliveryPlaceDinnerId) {
+        next.deliveryPlaceDinner = 'Seleccioná dónde entregamos la cena'
+      } else if (
+        client.deliveryPlaceDinnerId === OTHER_DELIVERY_PLACE &&
+        !client.deliveryPlaceDinnerOther.trim()
+      ) {
+        next.deliveryPlaceDinner = 'Indicá el lugar de la cena'
+      }
+    }
+
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -120,15 +150,15 @@ export default function OrderPage() {
   }
 
   const handleSubmitOrder = async () => {
-    const deliveryPlace = resolveDeliveryPlace()
     await catalog.submitOrder({
       companyId: form.companyId,
       formId: form.id,
       weekStart: form.startDate,
       weekEnd: form.endDate,
       userName: client.userName,
-      userSector: deliveryPlace,
       userPhone: client.userPhone,
+      deliveryPlaceLunch: lunchPlace,
+      deliveryPlaceDinner: dinnerPlace,
       totalMeals: total,
       details,
     })
@@ -337,7 +367,8 @@ export default function OrderPage() {
         onCompleted={lockAfterSubmit}
         client={{
           ...client,
-          userSector: resolveDeliveryPlace() || client.userSector,
+          deliveryPlaceLunch: lunchPlace,
+          deliveryPlaceDinner: dinnerPlace,
         }}
         company={company}
         week={form}

@@ -292,13 +292,22 @@ export async function getOrders() {
 }
 
 export async function createOrder(order) {
+  const lunch = (order.deliveryPlaceLunch || '').trim()
+  const dinner = (order.deliveryPlaceDinner || '').trim()
+  const legacySector =
+    lunch && dinner && lunch !== dinner
+      ? `Almuerzo: ${lunch} · Cena: ${dinner}`
+      : lunch || dinner || (order.userSector || '').trim()
+
   const payload = {
     companyId: order.companyId,
     formId: order.formId || '',
     weekStart: order.weekStart || '',
     weekEnd: order.weekEnd || '',
     userName: order.userName.trim(),
-    userSector: order.userSector.trim(),
+    userSector: legacySector,
+    deliveryPlaceLunch: lunch,
+    deliveryPlaceDinner: dinner,
     userPhone: order.userPhone.trim(),
     totalMeals: order.totalMeals,
     details: order.details,

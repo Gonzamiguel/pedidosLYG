@@ -139,9 +139,16 @@ export default function OrderConfirmModal({
                       <strong>Período:</strong> {weekRangeText(week)}
                     </p>
                   )}
-                  <p>
-                    <strong>Lugar de entrega:</strong> {client.userSector}
-                  </p>
+                  {client.deliveryPlaceLunch ? (
+                    <p>
+                      <strong>Almuerzo:</strong> {client.deliveryPlaceLunch}
+                    </p>
+                  ) : null}
+                  {client.deliveryPlaceDinner ? (
+                    <p>
+                      <strong>Cena:</strong> {client.deliveryPlaceDinner}
+                    </p>
+                  ) : null}
                   <p>
                     <strong>Tel:</strong> {client.userPhone}
                   </p>

@@ -6,7 +6,10 @@ import {
   Download,
 } from 'lucide-react'
 import { DAYS, DAY_IDS, MEAL_SLOTS } from '../../data/constants'
-import { exportConsolidatedExcel } from '../../utils/orderHelpers'
+import {
+  deliveryPlaceForSlot,
+  exportConsolidatedExcel,
+} from '../../utils/orderHelpers'
 import { formatDateTime, weekRangeText } from '../../utils/weekHelpers'
 
 const PAGE_SIZE = 10
@@ -108,7 +111,7 @@ export default function ConsolidatedModule({
               companyCode: company?.code || order.companyId,
               companyName: company?.name || '',
               userName: order.userName,
-              userSector: order.userSector,
+              userSector: deliveryPlaceForSlot(order, slot),
               userPhone: order.userPhone,
               dayId: day.id,
               dayLabel: day.label,
