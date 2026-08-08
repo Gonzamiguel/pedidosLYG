@@ -106,6 +106,28 @@ export function dayIdFromYmd(ymd) {
   return DAY_ID_FROM_JS[parseYmd(ymd).getDay()] ?? null
 }
 
+/** Lista YYYY-MM-DD inclusive entre desde y hasta */
+export function eachYmdInRange(startYmd, endYmd) {
+  if (!startYmd || !endYmd) return []
+  let from = startYmd
+  let to = endYmd
+  if (from > to) {
+    const tmp = from
+    from = to
+    to = tmp
+  }
+  const out = []
+  const cursor = parseYmd(from)
+  const end = parseYmd(to)
+  let guard = 0
+  while (cursor <= end && guard < 62) {
+    out.push(toDateInputValue(cursor))
+    cursor.setDate(cursor.getDate() + 1)
+    guard += 1
+  }
+  return out
+}
+
 const TITLE_DATE_FMT = new Intl.DateTimeFormat('es-AR', {
   weekday: 'long',
   day: 'numeric',
