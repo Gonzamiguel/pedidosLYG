@@ -13,6 +13,25 @@ export function countTotalMeals(details) {
   return DAY_IDS.reduce((sum, dayId) => sum + countDayMeals(details?.[dayId]), 0)
 }
 
+export function countAllSlotMeals(details, slot) {
+  return DAY_IDS.reduce(
+    (sum, dayId) => sum + countSlotMeals(details?.[dayId]?.[slot]),
+    0,
+  )
+}
+
+/** Lugar de entrega según servicio (con fallback a pedidos viejos) */
+export function deliveryPlaceForSlot(order, slot) {
+  if (slot === 'lunch') {
+    return (
+      (order.deliveryPlaceLunch || order.userSector || '').trim() || 'Sin lugar'
+    )
+  }
+  return (
+    (order.deliveryPlaceDinner || order.userSector || '').trim() || 'Sin lugar'
+  )
+}
+
 export function setDishCount(details, dayId, slot, dishId, count) {
   const next = structuredClone(details)
   if (!next[dayId]) {

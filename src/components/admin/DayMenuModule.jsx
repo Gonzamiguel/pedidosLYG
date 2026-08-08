@@ -3,6 +3,7 @@ import { Download, MapPin, UtensilsCrossed } from 'lucide-react'
 import { MEAL_SLOTS } from '../../data/constants'
 import {
   aggregateMenuTotals,
+  deliveryPlaceForSlot,
   exportDayMenuExcel,
   groupRowsByDeliveryPlace,
 } from '../../utils/orderHelpers'
@@ -53,13 +54,13 @@ export default function DayMenuModule({
       if (!dayDetails) continue
 
       const company = companiesById[order.companyId]
-      const place = (order.userSector || '').trim() || 'Sin lugar'
-      if (placeFilter !== 'all' && place !== placeFilter) continue
-
       const slots =
         slotFilter === 'all' ? ['lunch', 'dinner'] : [slotFilter]
 
       for (const slot of slots) {
+        const place = deliveryPlaceForSlot(order, slot)
+        if (placeFilter !== 'all' && place !== placeFilter) continue
+
         const entries = Object.entries(dayDetails[slot] || {}).filter(
           ([, n]) => Number(n) > 0,
         )
@@ -111,11 +112,13 @@ export default function DayMenuModule({
       if (!dayDetails) continue
       const slots =
         slotFilter === 'all' ? ['lunch', 'dinner'] : [slotFilter]
-      const hasMeals = slots.some((slot) =>
-        Object.values(dayDetails[slot] || {}).some((n) => Number(n) > 0),
-      )
-      if (!hasMeals) continue
-      set.add((order.userSector || '').trim() || 'Sin lugar')
+      for (const slot of slots) {
+        const hasMeals = Object.values(dayDetails[slot] || {}).some(
+          (n) => Number(n) > 0,
+        )
+        if (!hasMeals) continue
+        set.add(deliveryPlaceForSlot(order, slot))
+      }
     }
     return [...set].sort((a, b) => a.localeCompare(b, 'es'))
   }, [orders, date, dayId, companyFilter, slotFilter, formsById])
