@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Building2, Utensils } from 'lucide-react'
+import { Building2, MapPin, Utensils } from 'lucide-react'
 import CompaniesTab from './CompaniesTab'
 import DishesTab from './DishesTab'
+import LocationsTab from './LocationsTab'
 
 const VIEWS = [
   {
@@ -16,6 +17,12 @@ const VIEWS = [
     description: 'Catálogo central de platos',
     icon: Utensils,
   },
+  {
+    id: 'locations',
+    label: 'Lugares de entrega',
+    description: 'Opciones del desplegable de pedido',
+    icon: MapPin,
+  },
 ]
 
 export default function ConfigModule({ catalog }) {
@@ -23,7 +30,7 @@ export default function ConfigModule({ catalog }) {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         {VIEWS.map(({ id, label, description, icon: Icon }) => {
           const active = view === id
           return (
@@ -57,17 +64,25 @@ export default function ConfigModule({ catalog }) {
         })}
       </div>
 
-      {view === 'companies' ? (
+      {view === 'companies' && (
         <CompaniesTab
           companies={catalog.companies}
           onCreate={catalog.addCompany}
           onDelete={catalog.removeCompany}
         />
-      ) : (
+      )}
+      {view === 'dishes' && (
         <DishesTab
           dishes={catalog.dishes}
           onCreate={catalog.addDish}
           onDelete={catalog.removeDish}
+        />
+      )}
+      {view === 'locations' && (
+        <LocationsTab
+          places={catalog.deliveryPlaces}
+          onCreate={catalog.addDeliveryPlace}
+          onDelete={catalog.removeDeliveryPlace}
         />
       )}
     </div>

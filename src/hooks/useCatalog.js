@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   createCompany,
+  createDeliveryPlace,
   createDish,
   createForm,
   createOrder,
   deleteCompany,
+  deleteDeliveryPlace,
   deleteDish,
   deleteForm,
   getCompanies,
+  getDeliveryPlaces,
   getDishes,
   getFormById,
   getForms,
@@ -27,28 +30,28 @@ async function safeLoad(loader, fallback = []) {
 export function useCatalog() {
   const [companies, setCompanies] = useState([])
   const [dishes, setDishes] = useState([])
+  const [deliveryPlaces, setDeliveryPlaces] = useState([])
   const [forms, setForms] = useState([])
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   const refresh = useCallback(async ({ silent = false } = {}) => {
-    // silent: no mostrar pantalla de carga (evita desmontar modales/UI)
     if (!silent) {
       setLoading(true)
       setError('')
     }
     try {
-      // Cada colección se carga por separado: si falla "forms",
-      // igual se ven empresas y platos.
-      const [c, d, f, o] = await Promise.all([
+      const [c, d, p, f, o] = await Promise.all([
         safeLoad(getCompanies),
         safeLoad(getDishes),
+        safeLoad(getDeliveryPlaces),
         safeLoad(getForms),
         safeLoad(getOrders),
       ])
       setCompanies(c)
       setDishes(d)
+      setDeliveryPlaces(p)
       setForms(f)
       setOrders(o)
     } catch (err) {
@@ -79,6 +82,7 @@ export function useCatalog() {
   return {
     companies,
     dishes,
+    deliveryPlaces,
     forms,
     orders,
     dishesById,
@@ -121,6 +125,22 @@ export function useCatalog() {
       setDishes((prev) => prev.filter((d) => d.id !== id))
       await refresh()
     },
+    async addDeliveryPlace(data) {
+      const created = await createDeliveryPlace(data)
+      setDeliveryPlaces((prev) => {
+        if (prev.some((p) => p.id === created.id)) return prev
+        return [...prev, created].sort((a, b) =>
+          (a.name || '').localeCompare(b.name || '', 'es'),
+        )
+      })
+      await refresh()
+      return created
+    },
+    async removeDeliveryPlace(id) {
+      await deleteDeliveryPlace(id)
+      setDeliveryPlaces((prev) => prev.filter((p) => p.id !== id))
+      await refresh()
+    },
     async addForm(data) {
       const created = await createForm(data)
       setForms((prev) => [created, ...prev.filter((f) => f.id !== created.id)])
@@ -145,8 +165,6 @@ export function useCatalog() {
     async submitOrder(data) {
       const created = await createOrder(data)
       setOrders((prev) => [created, ...prev.filter((o) => o.id !== created.id)])
-      // Refresh en segundo plano sin pantalla de carga, para no
-      // desmontar el modal de confirmación / toast de éxito.
       refresh({ silent: true }).catch(() => {})
       return created
     },

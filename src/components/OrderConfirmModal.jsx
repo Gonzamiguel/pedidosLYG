@@ -8,6 +8,7 @@ import { weekRangeText } from '../utils/weekHelpers'
 export default function OrderConfirmModal({
   open,
   onClose,
+  onCompleted,
   client,
   company,
   week,
@@ -70,13 +71,18 @@ export default function OrderConfirmModal({
     }
   }
 
+  const finishAndClose = () => {
+    onClose()
+    if (done) onCompleted?.()
+  }
+
   return createPortal(
     <div className="fixed inset-0 z-[100]">
       <button
         type="button"
         aria-label="Cerrar"
         className="absolute inset-0 bg-slate-900/50"
-        onClick={onClose}
+        onClick={finishAndClose}
       />
 
       <div className="pointer-events-none absolute inset-0 flex items-end justify-center sm:items-center sm:p-4">
@@ -103,7 +109,7 @@ export default function OrderConfirmModal({
               </div>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={finishAndClose}
                 className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
               >
                 <X className="h-5 w-5" />
@@ -134,7 +140,7 @@ export default function OrderConfirmModal({
                     </p>
                   )}
                   <p>
-                    <strong>Sector:</strong> {client.userSector}
+                    <strong>Lugar de entrega:</strong> {client.userSector}
                   </p>
                   <p>
                     <strong>Tel:</strong> {client.userPhone}
@@ -214,7 +220,7 @@ export default function OrderConfirmModal({
             ) : (
               <button
                 type="button"
-                onClick={onClose}
+                onClick={finishAndClose}
                 className="inline-flex min-h-11 items-center justify-center rounded-lg bg-stone-100 px-4 text-sm font-semibold text-slate-700 hover:bg-stone-200"
               >
                 Cerrar

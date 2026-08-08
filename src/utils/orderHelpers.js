@@ -136,7 +136,7 @@ export function exportConsolidatedExcel(detailRows) {
     [
       'Empresa',
       'Quién pidió',
-      'Sector',
+      'Lugar de entrega',
       'Teléfono',
       'Día',
       'Servicio',
@@ -203,7 +203,7 @@ export function exportDayMenuExcel({ dateLabel, dateYmd, menuTotals, detailRows 
   rows.push([
     'Empresa',
     'Quién pidió',
-    'Sector',
+    'Lugar de entrega',
     'Teléfono',
     'Servicio',
     'Cantidad y plato',

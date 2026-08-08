@@ -4,6 +4,7 @@ function defaultState() {
   return {
     companies: [],
     dishes: [],
+    deliveryPlaces: [],
     forms: [],
     orders: [],
   }

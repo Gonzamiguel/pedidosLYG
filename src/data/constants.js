@@ -23,6 +23,8 @@ export const MEAL_SLOTS = {
   },
 }
 
+export const OTHER_DELIVERY_PLACE = '__otro__'
+
 export const ORDER_DEADLINE = {
   hour: 10,
   minute: 30,
