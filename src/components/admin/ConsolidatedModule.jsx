@@ -127,6 +127,8 @@ export default function ConsolidatedModule({
     }
 
     return list.sort((a, b) => {
+      const placeCmp = (a.userSector || '').localeCompare(b.userSector || '', 'es')
+      if (placeCmp !== 0) return placeCmp
       const dayCmp = DAY_IDS.indexOf(a.dayId) - DAY_IDS.indexOf(b.dayId)
       if (dayCmp !== 0) return dayCmp
       if (a.slot !== b.slot) return a.slot === 'lunch' ? -1 : 1
@@ -291,6 +293,7 @@ export default function ConsolidatedModule({
                   <tr>
                     <th className="px-4 py-3">Empresa</th>
                     <th className="px-4 py-3">Quién pidió</th>
+                    <th className="px-4 py-3">Lugar de entrega</th>
                     <th className="px-4 py-3">Día</th>
                     <th className="px-4 py-3">Servicio</th>
                     <th className="px-4 py-3">Plato</th>
@@ -309,10 +312,14 @@ export default function ConsolidatedModule({
                         <p className="font-medium text-slate-900">
                           {row.userName}
                         </p>
-                        <p className="text-xs text-slate-500">
-                          {row.userSector}
-                          {row.userPhone ? ` · ${row.userPhone}` : ''}
-                        </p>
+                        {row.userPhone ? (
+                          <p className="text-xs text-slate-500">
+                            {row.userPhone}
+                          </p>
+                        ) : null}
+                      </td>
+                      <td className="px-4 py-3 text-slate-800">
+                        {row.userSector || '—'}
                       </td>
                       <td className="px-4 py-3 text-slate-700">{row.dayLabel}</td>
                       <td className="px-4 py-3">
