@@ -140,6 +140,59 @@ export async function deleteDish(dishId) {
   await deleteDoc(doc(db, 'dishes', dishId))
 }
 
+/* ───────────── Delivery places ───────────── */
+
+export async function getDeliveryPlaces() {
+  if (!isFirebaseConfigured) return loadLocalState().deliveryPlaces || []
+  try {
+    const snap = await getDocs(
+      query(collection(db, 'deliveryPlaces'), orderBy('name')),
+    )
+    return snap.docs.map((d) => normalizeDoc(d.id, d.data()))
+  } catch (err) {
+    console.warn('getDeliveryPlaces orderBy falló, reintento sin orden', err)
+    const snap = await getDocs(collection(db, 'deliveryPlaces'))
+    return snap.docs
+      .map((d) => normalizeDoc(d.id, d.data()))
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'))
+  }
+}
+
+export async function createDeliveryPlace({ name }) {
+  const payload = {
+    name: name.trim(),
+    createdAt: new Date().toISOString(),
+  }
+  if (!payload.name) throw new Error('El nombre del lugar es obligatorio')
+
+  if (!isFirebaseConfigured) {
+    const id = `place_${Date.now()}`
+    updateLocalCollection('deliveryPlaces', (items) => {
+      if (items.some((p) => p.name.toLowerCase() === payload.name.toLowerCase())) {
+        throw new Error('Ya existe un lugar con ese nombre')
+      }
+      return [...items, { id, ...payload }]
+    })
+    return { id, ...payload }
+  }
+
+  const ref = await addDoc(collection(db, 'deliveryPlaces'), {
+    ...payload,
+    createdAt: serverTimestamp(),
+  })
+  return { id: ref.id, ...payload }
+}
+
+export async function deleteDeliveryPlace(placeId) {
+  if (!isFirebaseConfigured) {
+    updateLocalCollection('deliveryPlaces', (items) =>
+      items.filter((p) => p.id !== placeId),
+    )
+    return
+  }
+  await deleteDoc(doc(db, 'deliveryPlaces', placeId))
+}
+
 /* ───────────── Forms (empresa + fechas + menús) ───────────── */
 
 export async function getForms() {

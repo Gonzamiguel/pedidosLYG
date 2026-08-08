@@ -7,7 +7,7 @@ Plataforma de pedidos de viandas empresariales.
 1. **Menú del día** — totales a preparar por plato para una fecha + quién lo pidió (paginado).
 2. **Consolidado** — todos los pedidos con filtros (empresa, servicio, día, mes, año) y export Excel.
 3. **Formularios** — generar formulario por empresa + fechas + platos por día; al guardar se crea el link.
-4. **Configuración** — cargar empresas y cargar platos (dos vistas).
+4. **Configuración** — empresas, platos y lugares de entrega.
 
 ## Flujo
 

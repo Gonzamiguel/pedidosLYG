@@ -1,12 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { AlertCircle, CalendarDays, ShoppingBag } from 'lucide-react'
+import {
+  AlertCircle,
+  CalendarDays,
+  CheckCircle2,
+  ShoppingBag,
+} from 'lucide-react'
 import Header from '../components/Header'
 import ClientForm from '../components/ClientForm'
 import DayTabs from '../components/DayTabs'
 import MenuCard from '../components/MenuCard'
 import OrderConfirmModal from '../components/OrderConfirmModal'
-import { emptyOrderDetails, getDayLabel } from '../data/constants'
+import {
+  emptyOrderDetails,
+  getDayLabel,
+  OTHER_DELIVERY_PLACE,
+} from '../data/constants'
 import { dayIdsInRange } from '../data/formHelpers'
 import { useCatalog } from '../hooks/useCatalog'
 import { weekLabel, weekRangeText } from '../utils/weekHelpers'
@@ -20,6 +29,8 @@ const EMPTY_CLIENT = {
   userName: '',
   userSector: '',
   userPhone: '',
+  deliveryPlaceId: '',
+  deliveryPlaceOther: '',
 }
 
 export default function OrderPage() {
@@ -32,6 +43,7 @@ export default function OrderPage() {
   const [activeDay, setActiveDay] = useState('lun')
   const [errors, setErrors] = useState({})
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [orderSent, setOrderSent] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -46,6 +58,7 @@ export default function OrderPage() {
           setActiveDay(days[0] || 'lun')
           setClient((prev) => ({ ...prev, companyId: f.companyId }))
           setDetails(emptyOrderDetails())
+          setOrderSent(false)
         }
       })
       .finally(() => {
@@ -65,18 +78,36 @@ export default function OrderPage() {
   const total = useMemo(() => countTotalMeals(details), [details])
   const dayMenu = form?.days?.[activeDay] || { lunch: [], dinner: [] }
 
+  const resolveDeliveryPlace = () => {
+    if (client.deliveryPlaceId === OTHER_DELIVERY_PLACE) {
+      return (client.deliveryPlaceOther || '').trim()
+    }
+    const place = catalog.deliveryPlaces.find(
+      (p) => p.id === client.deliveryPlaceId,
+    )
+    return (place?.name || client.userSector || '').trim()
+  }
+
   const validateClient = () => {
     const next = {}
     if (!form || !company) next.companyId = 'Formulario no válido'
     if (form?.status === 'closed') next.week = 'Formulario cerrado'
     if (!client.userName.trim()) next.userName = 'Ingresá tu nombre'
-    if (!client.userSector.trim()) next.userSector = 'Ingresá el sector'
+    if (!client.deliveryPlaceId) {
+      next.userSector = 'Seleccioná el lugar de entrega'
+    } else if (
+      client.deliveryPlaceId === OTHER_DELIVERY_PLACE &&
+      !client.deliveryPlaceOther.trim()
+    ) {
+      next.userSector = 'Indicá dónde querés la entrega'
+    }
     if (!client.userPhone.trim()) next.userPhone = 'Ingresá un teléfono'
     setErrors(next)
     return Object.keys(next).length === 0
   }
 
   const openConfirm = () => {
+    if (orderSent) return
     if (!validateClient()) {
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
@@ -89,21 +120,44 @@ export default function OrderPage() {
   }
 
   const handleSubmitOrder = async () => {
+    const deliveryPlace = resolveDeliveryPlace()
     await catalog.submitOrder({
       companyId: form.companyId,
       formId: form.id,
       weekStart: form.startDate,
       weekEnd: form.endDate,
       userName: client.userName,
-      userSector: client.userSector,
+      userSector: deliveryPlace,
       userPhone: client.userPhone,
       totalMeals: total,
       details,
     })
   }
 
-  // Solo pantalla de carga en el primer fetch; no bloquear si ya hay datos
-  // (un refresh no debe desmontar el modal de revisión/éxito).
+  const lockAfterSubmit = () => {
+    setOrderSent(true)
+    setConfirmOpen(false)
+    setDetails(emptyOrderDetails())
+    setClient({
+      ...EMPTY_CLIENT,
+      companyId: form?.companyId || '',
+    })
+    setErrors({})
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const startNewOrder = () => {
+    setOrderSent(false)
+    setDetails(emptyOrderDetails())
+    setClient({
+      ...EMPTY_CLIENT,
+      companyId: form?.companyId || '',
+    })
+    setErrors({})
+    const days = form ? dayIdsInRange(form.startDate, form.endDate) : []
+    setActiveDay(days[0] || 'lun')
+  }
+
   if ((catalog.loading && !form) || formLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center text-slate-500">
@@ -154,6 +208,32 @@ export default function OrderPage() {
     )
   }
 
+  if (orderSent) {
+    return (
+      <div className="pb-8">
+        <Header company={company} />
+        <div className="mx-auto max-w-lg px-4 py-12">
+          <div className="rounded-xl border border-emerald-200 bg-white p-6 text-center shadow-sm">
+            <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
+            <h1 className="mt-3 text-xl font-semibold text-slate-900">
+              Pedido enviado
+            </h1>
+            <p className="mt-2 text-sm text-slate-600">
+              Tu pedido ya quedó registrado. No hace falta volver a enviarlo.
+            </p>
+            <button
+              type="button"
+              onClick={startNewOrder}
+              className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-bordo-700 px-5 text-sm font-semibold text-white hover:bg-bordo-800"
+            >
+              Hacer otro pedido
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="pb-24 sm:pb-28">
       <Header company={company} />
@@ -178,6 +258,7 @@ export default function OrderPage() {
             value={client}
             onChange={setClient}
             errors={errors}
+            deliveryPlaces={catalog.deliveryPlaces}
           />
 
           <DayTabs
@@ -253,7 +334,11 @@ export default function OrderPage() {
       <OrderConfirmModal
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        client={client}
+        onCompleted={lockAfterSubmit}
+        client={{
+          ...client,
+          userSector: resolveDeliveryPlace() || client.userSector,
+        }}
         company={company}
         week={form}
         details={details}

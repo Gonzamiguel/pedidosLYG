@@ -38,6 +38,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /deliveryPlaces/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /forms/{id} {
       allow read: if true;
       allow write: if isAdmin();
