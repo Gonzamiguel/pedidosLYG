@@ -170,65 +170,6 @@ export function exportConsolidatedExcel(detailRows) {
   )
 }
 
-/** Export Menú del día: hoja de totales + hoja de registros, ambos en columnas */
-export function exportDayMenuExcel({ dateLabel, dateYmd, menuTotals, detailRows }) {
-  const stamp = dateYmd || new Date().toISOString().slice(0, 10)
-  const fecha = dateLabel || stamp
-
-  // Archivo 1 mentalmente: todo en un CSV ordenado por bloques de tablas limpias
-  const rows = [
-    ['Fecha', fecha],
-    [],
-    ['TOTALES A PREPARAR'],
-    ['Cantidad y plato', 'Cantidad', 'Plato'],
-  ]
-
-  for (const item of menuTotals) {
-    rows.push([
-      cantidadYPlato(item.count, item.name),
-      String(item.count),
-      item.name,
-    ])
-  }
-
-  const mealsTotal = menuTotals.reduce((s, i) => s + i.count, 0)
-  rows.push([
-    cantidadYPlato(mealsTotal, 'viandas (total)'),
-    String(mealsTotal),
-    'TOTAL',
-  ])
-
-  rows.push([])
-  rows.push(['REGISTROS DEL DÍA'])
-  rows.push([
-    'Empresa',
-    'Quién pidió',
-    'Lugar de entrega',
-    'Teléfono',
-    'Servicio',
-    'Cantidad y plato',
-    'Cantidad',
-    'Plato',
-    'Cargado',
-  ])
-
-  for (const row of detailRows) {
-    rows.push([
-      row.companyCode,
-      row.userName,
-      row.userSector || '',
-      row.userPhone || '',
-      row.slotLabel,
-      cantidadYPlato(row.count, row.dishName),
-      String(row.count),
-      row.dishName,
-      row.createdAtLabel || '',
-    ])
-  }
-
-  downloadCsv(rows, `menu-del-dia-${stamp}.csv`)
-}
-
 export function aggregateMenuTotals(detailRows) {
   const map = new Map()
   for (const row of detailRows) {
@@ -247,4 +188,103 @@ export function aggregateMenuTotals(detailRows) {
     if (b.count !== a.count) return b.count - a.count
     return a.name.localeCompare(b.name, 'es')
   })
+}
+
+/** Agrupa filas por lugar de entrega (para despacho) */
+export function groupRowsByDeliveryPlace(detailRows) {
+  const map = new Map()
+  for (const row of detailRows) {
+    const place = (row.userSector || '').trim() || 'Sin lugar'
+    if (!map.has(place)) map.set(place, [])
+    map.get(place).push(row)
+  }
+
+  return [...map.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, 'es'))
+    .map(([place, placeRows]) => ({
+      place,
+      rows: placeRows,
+      totals: aggregateMenuTotals(placeRows),
+      meals: placeRows.reduce((s, r) => s + r.count, 0),
+    }))
+}
+
+/** Export Menú del día: totales globales + por lugar + registros */
+export function exportDayMenuExcel({
+  dateLabel,
+  dateYmd,
+  menuTotals,
+  detailRows,
+  byPlace = [],
+}) {
+  const stamp = dateYmd || new Date().toISOString().slice(0, 10)
+  const fecha = dateLabel || stamp
+  const placeGroups =
+    byPlace.length > 0 ? byPlace : groupRowsByDeliveryPlace(detailRows)
+
+  const rows = [
+    ['Fecha', fecha],
+    [],
+    ['TOTALES A PREPARAR (todos los lugares)'],
+    ['Cantidad y plato', 'Cantidad', 'Plato'],
+  ]
+
+  for (const item of menuTotals) {
+    rows.push([
+      cantidadYPlato(item.count, item.name),
+      String(item.count),
+      item.name,
+    ])
+  }
+
+  const mealsTotal = menuTotals.reduce((s, i) => s + i.count, 0)
+  rows.push([
+    cantidadYPlato(mealsTotal, 'viandas (total)'),
+    String(mealsTotal),
+    'TOTAL',
+  ])
+
+  for (const group of placeGroups) {
+    rows.push([])
+    rows.push([`LUGAR: ${group.place}`])
+    rows.push(['Cantidad y plato', 'Cantidad', 'Plato'])
+    for (const item of group.totals) {
+      rows.push([
+        cantidadYPlato(item.count, item.name),
+        String(item.count),
+        item.name,
+      ])
+    }
+    rows.push([
+      cantidadYPlato(group.meals, 'viandas'),
+      String(group.meals),
+      'Subtotal lugar',
+    ])
+    rows.push([
+      'Empresa',
+      'Quién pidió',
+      'Lugar de entrega',
+      'Teléfono',
+      'Servicio',
+      'Cantidad y plato',
+      'Cantidad',
+      'Plato',
+      'Cargado',
+    ])
+    for (const row of group.rows) {
+      rows.push([
+        row.companyCode,
+        row.userName,
+        row.userSector || group.place,
+        row.userPhone || '',
+        row.slotLabel,
+        cantidadYPlato(row.count, row.dishName),
+        String(row.count),
+        row.dishName,
+        row.createdAtLabel || '',
+      ])
+    }
+  }
+
+  downloadCsv(rows, `menu-del-dia-${stamp}.csv`)
 }
